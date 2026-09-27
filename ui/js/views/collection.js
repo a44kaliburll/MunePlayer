@@ -130,8 +130,8 @@ function emptyState(page) {
       <p>${scanning
         ? `<span class="scanning">Reading ${esc(String(model.scan.done || 0))} of ${esc(String(model.scan.total || '?'))} files.</span> Songs show up here as soon as they're read.`
         : folders.length
-          ? `Zoon is watching ${esc(folders.join(', '))}, but didn't find any music there. Add another folder in settings, or copy music into one of those folders.`
-          : 'Tell Zoon where your music lives and it will keep your collection up to date automatically.'}</p>
+          ? `Mune is watching ${esc(folders.join(', '))}, but didn't find any music there. Add another folder in settings, or copy music into one of those folders.`
+          : 'Tell Mune where your music lives and it will keep your collection up to date automatically.'}</p>
       ${scanning ? '' : '<button class="zbtn primary" data-go-settings>add folders</button>'}
     </div>`);
   node.querySelector('[data-go-settings]')?.addEventListener('click', () => router.go({ pivot: 'settings', params: { section: 'collection' } }));

@@ -1,11 +1,11 @@
-# Zoon Player
+# Mune Player
 
 A music player for your own music collection, in the style of Microsoft's Zune:
 
 - **Windows:** a desktop app modelled on the Zune 4.8 software. It plays your music folders, keeps `.zpl` playlists the original Zune software can open, and syncs a real **Zune HD** over USB.
 - **Android:** a phone app modelled on the Zune HD (big lowercase menus, panoramas, a now playing screen with drifting artist photos). It plays the music on the phone and syncs with the Windows app over Wi‑Fi. See [android/README.md](android/README.md).
 
-Zoon Player is a fan project, not affiliated with or endorsed by Microsoft. Zune is a trademark of Microsoft Corporation.
+Mune Player is a fan project, not affiliated with or endorsed by Microsoft. Zune is a trademark of Microsoft Corporation.
 
 ## Windows app
 
@@ -18,7 +18,7 @@ npm start
 
 If `npm start` says Electron failed to install, run `node node_modules/electron/install.js` once (newer npm versions skip install scripts, and Electron downloads its binary in one).
 
-- `npm run dist` builds an installer, `dist\Zoon Player Setup 1.0.0.exe`, with Start menu entries.
+- `npm run dist` builds an installer, `dist\Mune Player Setup 1.1.0.exe`, with Start menu entries.
 - `node server/dev.js --port=18751` runs the back end without Electron, for a browser preview on `http://127.0.0.1:18751` with its own separate data. Add `?noanim` to the URL in previews that don't run CSS animations.
 
 On first run it watches your Music folder, plus the folders the original Zune software used if it's installed. Change them under **settings > collection**.
@@ -36,7 +36,7 @@ On first run it watches your Music folder, plus the folders the original Zune so
 | playlists as `.zpl` files the original Zune software can open; drag songs onto the playlist icon | yes |
 | compact (mini player) mode, taskbar thumbnail buttons, media keys | yes |
 | monitored folders that update on their own | yes |
-| social | a local "zoon card" with your plays, favorites and badges |
+| social | a local "mune card" with your plays, favorites and badges |
 | your name, this PC's name, your Zune's name | yes: settings > account, settings > phone, and "rename" on the device page (your name starts as your Windows account name) |
 | Zune HD sync | yes: "device" pivot, sync all music or drag / right-click "sync with …", remove from device, the device's play counts flow back |
 | wireless sync with the Android app | yes (settings > phone) |
@@ -55,7 +55,7 @@ Nothing is built in: you use your own free Google Cloud project, set up once.
 1. At [console.cloud.google.com](https://console.cloud.google.com), create a project and enable the **YouTube Data API v3** (APIs & Services > Library).
 2. In **Google Auth Platform**, set the app up as **External**. Under **Audience**, add yourself as a test user, or choose **Publish app** so the sign-in doesn't expire every 7 days. (Google warns that the app is unverified; it's your own project.)
 3. Under **Clients**, create a client of the type **TVs and Limited Input devices**.
-4. In Zoon Player, **settings > online > youtube music**: paste the client ID and secret, then **sign in with Google**. Zoon shows a code to enter at google.com/device.
+4. In Mune Player, **settings > online > youtube music**: paste the client ID and secret, then **sign in with Google**. Mune shows a code to enter at google.com/device.
 
 The Android app can copy the client from the PC it's paired with, then signs in the same way. The sign-in is kept on each device (encrypted with your Windows account on the PC) and can be removed at any time from your Google Account. A search uses 100 of the project's 10,000 free daily YouTube quota units; everything else uses 1.
 
@@ -63,7 +63,7 @@ The Android app can copy the client from the PC it's paired with, then signs in 
 
 Plug the Zune in and a **device** pivot appears. The app talks to the Zune through Microsoft's own Zune driver, which is installed with the original Zune software, so no driver swap is needed. Close the original Zune software before syncing: a Zune can only be in one sync session at a time.
 
-A Zune only accepts new files after the **MTPZ** handshake, which needs the "Zune Software" application certificate and RSA key. **They are not included in this repository.** Put them in `%USERPROFILE%\.mtpz-data` (the format libmtp uses: exponent, encryption key, modulus, private key and certificates, one hex string per line) or in `%USERPROFILE%\.zoon-player\mtpz-keys.json` (`exponent`, `modulus`, `privateKey`, `certificates`). Without them the app can still read what's on a Zune but can't copy to it.
+A Zune only accepts new files after the **MTPZ** handshake, which needs the "Zune Software" application certificate and RSA key. **They are not included in this repository.** Put them in `%USERPROFILE%\.mtpz-data` (the format libmtp uses: exponent, encryption key, modulus, private key and certificates, one hex string per line) or in `%USERPROFILE%\.mune-player\mtpz-keys.json` (`exponent`, `modulus`, `privateKey`, `certificates`). Without them the app can still read what's on a Zune but can't copy to it.
 
 How it works, in `native/zunewpd.cpp` and `server/sync.js`:
 
@@ -74,7 +74,7 @@ How it works, in `native/zunewpd.cpp` and `server/sync.js`:
 
 ### Wireless sync with the Android app
 
-1. **settings > phone** > "Let my phone sync with this PC over Wi‑Fi". The first time, Windows asks whether Zoon Player may use the network: choose **Allow** on private networks.
+1. **settings > phone** > "Let my phone sync with this PC over Wi‑Fi". The first time, Windows asks whether Mune Player may use the network: choose **Allow** on private networks.
 2. **pair a phone** shows a six-digit code for 10 minutes.
 3. On the phone, open **sync**, pick the PC and type the code.
 
@@ -82,7 +82,7 @@ The phone finds the PC with a UDP broadcast on port 18761 and then uses a small 
 
 ### Where things live
 
-- Library index, ratings, plays, settings and the art cache: `%USERPROFILE%\.zoon-player` (`.zoon-player-dev` for `server/dev.js`).
+- Library index, ratings, plays, settings and the art cache: `%USERPROFILE%\.mune-player` (`.mune-player-dev` for `server/dev.js`).
 - Playlists: `.zpl` files in the `Playlists` folder inside your first music folder, where the original Zune software kept them.
 
 ### Code map

@@ -1,4 +1,4 @@
-// Wireless sync with the Zoon Player Android app (settings > phone).
+// Wireless sync with the Mune Player Android app (settings > phone).
 //
 // Off until it's turned on. The phone finds this PC with a UDP broadcast, pairs
 // once with a six-digit code shown on the PC, and then uses a small HTTP API on
@@ -18,7 +18,7 @@ import { MIME, NATIVE_EXT, cleanName } from './util.js';
 
 export const PHONE_PORT = 18760;
 export const DISCOVERY_PORT = 18761;
-const API = '/zoon/v1';
+const API = '/mune/v1';
 const PAIR_MS = 10 * 60 * 1000;
 const MAX_TRIES = 8;
 const VPN = /tailscale|vpn|zerotier|wireguard/i;
@@ -135,7 +135,7 @@ export class PhoneSync extends EventEmitter {
       });
     } catch (err) {
       this.error = err.code === 'EADDRINUSE'
-        ? `Port ${this.wantedPort} is already in use (is Zoon Player open twice?).`
+        ? `Port ${this.wantedPort} is already in use (is Mune Player open twice?).`
         : err.message;
       return;
     }
@@ -161,7 +161,7 @@ export class PhoneSync extends EventEmitter {
       } catch {
         return;
       }
-      if (q?.q !== 'zoon-player') return;
+      if (q?.q !== 'mune-player') return;
       sock.send(Buffer.from(JSON.stringify(this.#hello())), rinfo.port, rinfo.address);
     });
     sock.bind(DISCOVERY_PORT, this.host === '0.0.0.0' ? undefined : this.host);
@@ -213,7 +213,7 @@ export class PhoneSync extends EventEmitter {
 
   #hello() {
     return {
-      app: 'zoon-player',
+      app: 'mune-player',
       api: 1,
       id: this.user.data.pcId,
       name: this.pcName(),
@@ -252,7 +252,7 @@ export class PhoneSync extends EventEmitter {
       // The Google OAuth client set up in settings > online, so the phone can sign in to YouTube with it too.
       if (get && route === '/youtube') {
         const client = this.getYouTubeClient();
-        if (!client) throw new HttpError(404, "YouTube Music isn't set up in Zoon Player on this PC");
+        if (!client) throw new HttpError(404, "YouTube Music isn't set up in Mune Player on this PC");
         return sendJson(res, 200, client);
       }
       throw new HttpError(404, 'Not found');
@@ -282,7 +282,7 @@ export class PhoneSync extends EventEmitter {
     const body = await readBody(req, 4096);
     const pairing = this.pairing;
     if (!pairing || pairing.expires < Date.now()) {
-      throw new HttpError(409, 'Pairing is closed. On your PC, open Zoon Player > settings > phone and choose "pair a phone".');
+      throw new HttpError(409, 'Pairing is closed. On your PC, open Mune Player > settings > phone and choose "pair a phone".');
     }
     pairing.tries++;
     const code = String(body.code || '').replace(/\D/g, '');
@@ -348,7 +348,7 @@ export class PhoneSync extends EventEmitter {
       this.activity = { phone: phone.name, title: t.title, at: Date.now() };
       this.#emitActivity();
     }
-    await sendMedia(req, res, file, type, { 'X-Zoon-Ext': path.extname(file) });
+    await sendMedia(req, res, file, type, { 'X-Mune-Ext': path.extname(file) });
   }
 
   #emitActivity() {

@@ -1,4 +1,4 @@
-// search results, social (a local Zoon card) and the not-yet-built media types.
+// search results, social (a local Mune card) and the not-yet-built media types.
 import { albumMenu, artistMenu, goToAlbum, goToArtist, playItem } from '../actions.js';
 import { Selection, Virtual, showMenu, startDrag } from '../components.js';
 import { model } from '../model.js';
@@ -95,7 +95,7 @@ export function searchView(page, state) {
   };
 }
 
-// ---------------------------------------------------------------- social: your zoon card
+// ---------------------------------------------------------------- social: your mune card
 const MEDALS = [
   [250, 'platinum', '#8e9aa6'],
   [100, 'gold', '#d4a017'],
@@ -127,7 +127,7 @@ export function socialView(page) {
   const root = el(`
     <div class="social">
       <div class="zcard">
-        <div class="who"><div class="avatar">${icons.person}</div><div><b>${esc(model.profile.name)}</b><span>zoon card</span></div></div>
+        <div class="who"><div class="avatar">${icons.person}</div><div><b>${esc(model.profile.name)}</b><span>mune card</span></div></div>
         <div class="stats">
           <div><b>${total.toLocaleString()}</b><span>plays</span></div>
           <div><b>${model.tracks.size.toLocaleString()}</b><span>songs</span></div>
@@ -160,13 +160,13 @@ export function socialView(page) {
 const PLACEHOLDERS = {
   videos: (s) => ({
     title: 'videos',
-    body: `Video playback isn't part of Zoon Player yet. Your video folders are ${(s.videoFolders || []).map(esc).join(', ') || 'not set'}.`,
+    body: `Video playback isn't part of Mune Player yet. Your video folders are ${(s.videoFolders || []).map(esc).join(', ') || 'not set'}.`,
   }),
   pictures: (s) => ({
     title: 'pictures',
-    body: `Pictures aren't part of Zoon Player yet. Your picture folders are ${(s.pictureFolders || []).map(esc).join(', ') || 'not set'}.`,
+    body: `Pictures aren't part of Mune Player yet. Your picture folders are ${(s.pictureFolders || []).map(esc).join(', ') || 'not set'}.`,
   }),
-  podcasts: () => ({ title: 'podcasts', body: 'Podcast subscriptions aren\'t part of Zoon Player yet.' }),
+  podcasts: () => ({ title: 'podcasts', body: 'Podcast subscriptions aren\'t part of Mune Player yet.' }),
   channels: () => ({ title: 'channels', body: 'Zune channels were a streaming service. They went away with the Zune service in 2015.' }),
 };
 

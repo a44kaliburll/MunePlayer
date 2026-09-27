@@ -1,4 +1,4 @@
-// zunewpd.exe — Windows Portable Devices bridge between Zoon Player and a Zune.
+// zunewpd.exe — Windows Portable Devices bridge between Mune Player and a Zune.
 //
 // It talks to the Zune through Microsoft's own Zune driver (installed with the
 // Zune software). That driver performs the MTPZ handshake itself, so no driver
@@ -480,7 +480,7 @@ class Zune {
   HRESULT open(const std::wstring& id) {
     close();
     auto client = newValues();
-    client->SetStringValue(WPD_CLIENT_NAME, L"Zoon Player");
+    client->SetStringValue(WPD_CLIENT_NAME, L"Mune Player");
     client->SetUnsignedIntegerValue(WPD_CLIENT_MAJOR_VERSION, 1);
     client->SetUnsignedIntegerValue(WPD_CLIENT_MINOR_VERSION, 0);
     client->SetUnsignedIntegerValue(WPD_CLIENT_REVISION, 0);

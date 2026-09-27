@@ -138,7 +138,7 @@ export class Playlists extends EventEmitter {
       '<smil>',
       '  <head>',
       `    <guid>${xmlEscape(guid)}</guid>`,
-      '    <meta name="generator" content="Zoon Player -- 1.0" />',
+      '    <meta name="generator" content="Mune Player -- 1.1" />',
       `    <meta name="totalDuration" content="${total}" />`,
       `    <meta name="itemCount" content="${tracks.length + extraEntries.length}" />`,
       `    <title>${xmlEscape(name)}</title>`,

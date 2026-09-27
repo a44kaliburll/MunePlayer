@@ -1,7 +1,7 @@
-// Bridge between the Zoon Player UI (served from 127.0.0.1) and the Electron main process.
+// Bridge between the Mune Player UI (served from 127.0.0.1) and the Electron main process.
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('zoonShell', {
+contextBridge.exposeInMainWorld('muneShell', {
   win: (action) => ipcRenderer.send('win', action),
   onWinState: (cb) => ipcRenderer.on('win:state', (_e, state) => cb(state)),
   pickFolder: () => ipcRenderer.invoke('dialog:pickFolder'),

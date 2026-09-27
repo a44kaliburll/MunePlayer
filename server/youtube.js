@@ -1,17 +1,17 @@
 // YouTube Music through YouTube's official APIs (settings > online > youtube music).
 //
 // Nothing is built in: each person makes their own Google Cloud OAuth client of the type
-// "TVs and Limited Input devices" and signs in with Google's device flow (Zoon shows a code,
-// they approve it at google.com/device). Zoon searches YouTube and reads their playlists and
+// "TVs and Limited Input devices" and signs in with Google's device flow (Mune shows a code,
+// they approve it at google.com/device). Mune searches YouTube and reads their playlists and
 // liked songs with the YouTube Data API; songs play in YouTube's embedded player, with video,
 // in the UI. Nothing is downloaded, and only the sign-in is kept (encrypted in the desktop app).
 import { EventEmitter } from 'node:events';
 import { HttpError } from './http.js';
 import { JsonStore } from './store.js';
 
-// Overridable so tests can point Zoon at a stand-in server.
-const OAUTH = process.env.ZOON_GOOGLE_OAUTH || 'https://oauth2.googleapis.com';
-const API = process.env.ZOON_YOUTUBE_API || 'https://www.googleapis.com/youtube/v3';
+// Overridable so tests can point Mune at a stand-in server.
+const OAUTH = process.env.MUNE_GOOGLE_OAUTH || 'https://oauth2.googleapis.com';
+const API = process.env.MUNE_YOUTUBE_API || 'https://www.googleapis.com/youtube/v3';
 const SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 const MUSIC = '10'; // YouTube's Music video category
 const MAX_ITEMS = 200;
@@ -241,7 +241,7 @@ export class YouTube extends EventEmitter {
       if (err.code === 'invalid_grant' || err.code === 'invalid_client') {
         this.#forget();
         this.store.save(0);
-        this.error = 'Google signed Zoon out of YouTube (the sign-in expired or was removed). Sign in again.';
+        this.error = 'Google signed Mune out of YouTube (the sign-in expired or was removed). Sign in again.';
         this.emit('status');
         throw new HttpError(401, this.error);
       }

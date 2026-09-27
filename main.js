@@ -1,4 +1,4 @@
-// Zoon Player — Electron main process.
+// Mune Player — Electron main process.
 // Starts the local library server, then shows it in a frameless window styled
 // like the Zune 4.8 desktop software.
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, safeStorage, screen, session, shell } from 'electron';
@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { appIconBitmap, thumbBitmap } from './desktop/icons.js';
-import { startZoon } from './server/app.js';
+import { startMune } from './server/app.js';
 import { stateDir } from './server/util.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -19,7 +19,7 @@ const capturePath = arg('capture'); // --capture=out.png: screenshot the window,
 // --state=<dir> points a test run at a throwaway state folder (e.g. to check first-run behaviour).
 const dir = arg('state') ? (fs.mkdirSync(arg('state'), { recursive: true }), arg('state')) : stateDir(serveOnly || !!capturePath);
 app.setPath('userData', path.join(dir, 'electron'));
-const APP_ID = 'app.zoonplayer';
+const APP_ID = 'app.muneplayer';
 app.setAppUserModelId(APP_ID);
 
 const FULL_MIN = { width: 900, height: 600 };
@@ -128,7 +128,7 @@ function createWindow() {
     frame: false,
     show: false,
     backgroundColor: '#ffffff',
-    title: 'Zoon',
+    title: 'Mune',
     icon: appIcon,
     webPreferences: {
       preload: path.join(here, 'preload.cjs'),
@@ -228,7 +228,7 @@ app.whenReady().then(async () => {
   });
 
   const portArg = arg('port');
-  backend = await startZoon({
+  backend = await startMune({
     stateDir: dir,
     uiDir: path.join(here, 'ui'),
     port: portArg ? Number(portArg) : APP_PORT,
@@ -246,7 +246,7 @@ app.whenReady().then(async () => {
       unprotect: (sealed) => safeStorage.decryptString(Buffer.from(sealed, 'base64')),
     },
   });
-  console.log(`Zoon Player server at ${backend.url}`);
+  console.log(`Mune Player server at ${backend.url}`);
   if (!serveOnly) createWindow();
 });
 

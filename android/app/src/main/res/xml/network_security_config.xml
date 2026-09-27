@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Wireless sync talks plain HTTP to Zoon Player on the PC, over the local network only.
+    <!-- Wireless sync talks plain HTTP to Mune Player on the PC, over the local network only.
          Everything on the internet (Deezer, iTunes) is HTTPS. -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>

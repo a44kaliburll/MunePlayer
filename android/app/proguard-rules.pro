@@ -1,8 +1,8 @@
-# Zoon Player release build. Media3, Coil, OkHttp, WorkManager and Compose ship their own
+# Mune Player release build. Media3, Coil, OkHttp, WorkManager and Compose ship their own
 # consumer rules; the app only needs its WorkManager worker kept by name.
--keep class app.zoonplayer.sync.AutoSyncWorker { <init>(...); }
+-keep class app.muneplayer.sync.AutoSyncWorker { <init>(...); }
 # The YouTube player page calls back into the app through a JavaScript bridge.
--keepclassmembers class app.zoonplayer.ui.screens.YtBridge {
+-keepclassmembers class app.muneplayer.ui.screens.YtBridge {
     @android.webkit.JavascriptInterface <methods>;
 }
 -dontwarn org.conscrypt.**

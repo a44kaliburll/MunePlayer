@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Zoon</string>
+    <string name="app_name">Mune</string>
     <string name="playback_channel">Now playing</string>
     <string name="sync_channel">Wireless sync</string>
 </resources>

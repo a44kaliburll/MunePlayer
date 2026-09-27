@@ -170,7 +170,7 @@ export class MtpzAuth {
     }
     // The Zune firmware wants a SessionInitiatorInfo mentioning MTPZClassDriver (libmtp sends its own name too).
     try {
-      await this.#op(OP.SetDevicePropValue, { params: [0xd406], data: mtpString('Zoon Player - MTPZClassDriver') });
+      await this.#op(OP.SetDevicePropValue, { params: [0xd406], data: mtpString('Mune Player - MTPZClassDriver') });
     } catch {
       // Microsoft's driver has usually set it already.
     }

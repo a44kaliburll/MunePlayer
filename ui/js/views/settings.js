@@ -6,7 +6,7 @@ import { router } from '../router.js';
 import { el, esc, plural } from '../util.js';
 
 export const GLOWS = {
-  pink: { label: 'zoon', light: ['255,132,118', '247,150,186'], dark: ['236,40,120', '240,90,60'] },
+  pink: { label: 'mune', light: ['255,132,118', '247,150,186'], dark: ['236,40,120', '240,90,60'] },
   blue: { label: 'blue', light: ['90,170,255', '140,205,255'], dark: ['30,120,240', '60,190,255'] },
   green: { label: 'green', light: ['140,210,80', '196,232,120'], dark: ['90,180,30', '170,220,40'] },
   orange: { label: 'orange', light: ['255,160,60', '255,206,110'], dark: ['240,110,20', '255,170,40'] },
@@ -65,7 +65,7 @@ function youtubeSection(yt) {
   let body;
   if (!yt.configured) {
     body = `
-      <p>Search YouTube Music and play your YouTube playlists and liked songs in the marketplace, with video, in YouTube's own player. Zoon reaches YouTube through your own free Google Cloud project, set up once:</p>
+      <p>Search YouTube Music and play your YouTube playlists and liked songs in the marketplace, with video, in YouTube's own player. Mune reaches YouTube through your own free Google Cloud project, set up once:</p>
       <ol class="yt-steps">
         <li>At <b>console.cloud.google.com</b>, create a project and enable the <b>YouTube Data API v3</b> (APIs &amp; Services › Library).</li>
         <li>In <b>Google Auth Platform</b>, set the app up as <b>External</b>. Under <b>Audience</b>, add yourself as a test user, or choose <b>Publish app</b> so the sign-in doesn't expire every 7 days. (Google warns that the app is unverified; it's your own project.)</li>
@@ -97,7 +97,7 @@ function youtubeSection(yt) {
       <h3>youtube music</h3>
       ${body}
       ${yt.error ? `<div class="status-line busy">${esc(yt.error)}</div>` : ''}
-      <p class="yt-fine">This uses YouTube API Services. By signing in you agree to the ${ext('https://www.youtube.com/t/terms', 'YouTube Terms of Service')}; see also the ${ext('https://policies.google.com/privacy', 'Google Privacy Policy')}. The sign-in stays on this PC, and you can ${ext('https://myaccount.google.com/connections', 'remove Zoon\'s access')} from your Google Account at any time.</p>
+      <p class="yt-fine">This uses YouTube API Services. By signing in you agree to the ${ext('https://www.youtube.com/t/terms', 'YouTube Terms of Service')}; see also the ${ext('https://policies.google.com/privacy', 'Google Privacy Policy')}. The sign-in stays on this PC, and you can ${ext('https://myaccount.google.com/connections', 'remove Mune\'s access')} from your Google Account at any time.</p>
     </section>`;
 }
 
@@ -123,7 +123,7 @@ export function settingsView(page) {
       pane.innerHTML = `
         <section>
           <h3>music folders</h3>
-          <p>Zoon watches these folders and adds new music automatically.${st.importedFromZune ? ' They were copied from your original Zune software settings.' : ''}</p>
+          <p>Mune watches these folders and adds new music automatically.${st.importedFromZune ? ' They were copied from your original Zune software settings.' : ''}</p>
           <ul class="folders">${folders.map((f, i) => `<li><span title="${esc(f)}">${esc(f)}</span><a data-remove="${i}">remove</a></li>`).join('') || '<li><span class="muted">No folders yet.</span></li>'}</ul>
           <div class="addfolder">
             ${native ? '<button class="zbtn" data-add>add folder…</button>' : '<input type="text" placeholder="Paste a folder path, e.g. D:\\Music" data-path><button class="zbtn" data-add>add</button>'}
@@ -183,8 +183,8 @@ export function settingsView(page) {
       pane.innerHTML = `
         <section>
           <h3>wireless sync</h3>
-          <p>Sync your music to the Zoon Player app on your Android phone over Wi‑Fi, the way a Zune HD synced. Your phone and this PC need to be on the same network, with Zoon Player open here.</p>
-          ${check('phone.enabled', 'Let my phone sync with this PC over Wi‑Fi', 'The first time, Windows asks whether Zoon Player may use your network. Choose Allow for private networks.', on)}
+          <p>Sync your music to the Mune Player app on your Android phone over Wi‑Fi, the way a Zune HD synced. Your phone and this PC need to be on the same network, with Mune Player open here.</p>
+          ${check('phone.enabled', 'Let my phone sync with this PC over Wi‑Fi', 'The first time, Windows asks whether Mune Player may use your network. Choose Allow for private networks.', on)}
           ${on ? `<div class="status-line ${ph.listening ? '' : 'busy'}">${esc(ph.listening ? `Ready for your phone at ${(ph.addresses || []).join(', ') || 'this PC'} (port ${ph.port}).` : ph.error || 'Starting…')}</div>` : ''}
           ${ph.activity ? `<div class="status-line busy">${esc(`${ph.activity.phone} is syncing: ${ph.activity.title}`)}</div>` : ''}
         </section>
@@ -196,11 +196,11 @@ export function settingsView(page) {
         ${on ? `<section>
           <h3>pair a phone</h3>
           ${pairing ? `
-            <p>On your phone, open Zoon, go to <b>sync</b>, pick <b>${esc(ph.name || 'this PC')}</b> and enter this code:</p>
+            <p>On your phone, open Mune, go to <b>sync</b>, pick <b>${esc(ph.name || 'this PC')}</b> and enter this code:</p>
             <div class="paircode">${esc(pairing.code.slice(0, 3))}<i></i>${esc(pairing.code.slice(3))}</div>
             <p data-expires>The code works for ${fmtLeft(pairing.expires - Date.now())}.</p>
             <button class="zbtn" data-cancelpair>cancel</button>` : `
-            <p>Install Zoon Player on your phone and pair it once. After that it syncs whenever you ask, and on its own while it charges on this Wi‑Fi.</p>
+            <p>Install Mune Player on your phone and pair it once. After that it syncs whenever you ask, and on its own while it charges on this Wi‑Fi.</p>
             <button class="zbtn primary" data-pair ${ph.listening ? '' : 'disabled'}>pair a phone</button>`}
         </section>` : ''}
         <section>
@@ -211,7 +211,7 @@ export function settingsView(page) {
       pane.innerHTML = `
         <section>
           <h3>your name</h3>
-          <p>Shown at the top of Zoon and on your zoon card. It stays on this PC.</p>
+          <p>Shown at the top of Mune and on your mune card. It stays on this PC.</p>
           <ul class="folders"><li><span>${esc(model.profile.name || '')}</span><a data-rename="profile">change</a></li></ul>
         </section>`;
     } else if (section === 'keyboard') {
@@ -223,7 +223,7 @@ export function settingsView(page) {
     } else {
       pane.innerHTML = `
         <section>
-          <h3>zoon player</h3>
+          <h3>mune player</h3>
           <p>A music player for your own collection, rebuilt from scratch in the style of the Zune 4.8 desktop software. Not affiliated with Microsoft; Zune is a trademark of Microsoft Corporation.</p>
           <p>${plural(model.tracks.size, 'song')} · ${plural(model.albums.size, 'album')} · ${plural(model.playlists.size, 'playlist')} · ${model.totalPlays().toLocaleString()} plays</p>
         </section>`;

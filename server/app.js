@@ -58,7 +58,7 @@ function accountName() {
  * Builds the whole back end (library, art, playlists, API) and starts the
  * local HTTP server. Used by the Electron main process and by server/dev.js.
  */
-export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', platform = {}, resize = async () => null, devices = false, phoneSync = false, phoneHost = '0.0.0.0' }) {
+export async function startMune({ stateDir, uiDir, port = 0, shell = 'browser', platform = {}, resize = async () => null, devices = false, phoneSync = false, phoneHost = '0.0.0.0' }) {
   const token = crypto.randomBytes(18).toString('base64url');
   const user = new JsonStore(path.join(stateDir, 'state.json'), USER_DEFAULTS);
   user.load();
@@ -110,7 +110,7 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
     user, library, art, playlists, cacheDir: path.join(stateDir, 'phone-cache'), getFfmpeg: () => transcoder.ffmpeg, host: phoneHost, getYouTubeClient: () => youtube.client(),
   });
 
-  const profileName = () => settings.profileName || accountName() || 'zoon';
+  const profileName = () => settings.profileName || accountName() || 'mune';
 
   const publicUser = () => ({
     settings,

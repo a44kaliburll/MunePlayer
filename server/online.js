@@ -1,7 +1,7 @@
 import { JsonStore } from './store.js';
 import { norm, sleep } from './util.js';
 
-const UA = 'ZoonPlayer/1.0 (local music player)';
+const UA = 'MunePlayer/1.1 (local music player)';
 const RETRY_MISS_MS = 14 * 24 * 3600 * 1000;
 
 /** Loose title key: drops bracketed qualifiers and punctuation. */

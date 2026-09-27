@@ -25,7 +25,7 @@ async function load(path) {
 
 /**
  * YouTube's embedded player in an iframe, driven over the IFrame Player API's postMessage
- * channel, so no YouTube script runs in Zoon's own page.
+ * channel, so no YouTube script runs in Mune's own page.
  */
 class EmbeddedPlayer {
   constructor(host, { onState, onError }) {
@@ -114,7 +114,7 @@ class Dock {
       </aside>`);
     this.embed = new EmbeddedPlayer(this.node.querySelector('.yt-frame'), {
       onState: (s) => {
-        if (s === 1 && player.playing) player.pause(); // YouTube started: pause Zoon's own music
+        if (s === 1 && player.playing) player.pause(); // YouTube started: pause Mune's own music
         if (s === 0) this.step(1); // ended: next in the list
       },
       onError: (code) => {
@@ -122,7 +122,7 @@ class Dock {
         setTimeout(() => this.step(1), 1500);
       },
     });
-    // And the other way round: Zoon's own music pauses YouTube.
+    // And the other way round: Mune's own music pauses YouTube.
     this.offPlayer = player.on('state', (playing) => {
       if (playing) this.embed.pause();
     });

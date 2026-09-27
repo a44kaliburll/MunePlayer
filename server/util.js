@@ -66,7 +66,14 @@ export function limiter(n) {
 
 /** Where the app keeps its library index, caches and settings (outside OneDrive). */
 export function stateDir(dev = false) {
-  const dir = path.join(os.homedir(), dev ? '.zoon-player-dev' : '.zoon-player');
+  const dir = path.join(os.homedir(), dev ? '.mune-player-dev' : '.mune-player');
+  // Before 1.1 the app was called Zoon Player and kept its data under that name; bring it along once.
+  const legacy = path.join(os.homedir(), dev ? '.zoon-player-dev' : '.zoon-player');
+  if (!fs.existsSync(dir) && fs.existsSync(legacy)) {
+    try {
+      fs.renameSync(legacy, dir);
+    } catch {}
+  }
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }

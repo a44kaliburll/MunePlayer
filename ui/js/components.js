@@ -336,7 +336,7 @@ export function toast(message, ms = 2600) {
 }
 
 // ---------------------------------------------------------------- drag and drop
-const DND_TYPE = 'application/x-zoon-tracks';
+const DND_TYPE = 'application/x-mune-tracks';
 let dragPayload = null;
 
 /** Start dragging a set of track ids (with a small "N songs" drag image). */

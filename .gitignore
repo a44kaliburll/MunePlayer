@@ -21,7 +21,7 @@ android/.idea/
 *.iml
 *.jks
 *.keystore
-zoon-release.properties
+mune-release.properties
 
 # MTPZ key material never goes in the repository (see "Syncing a Zune HD" in README.md)
 .mtpz-data

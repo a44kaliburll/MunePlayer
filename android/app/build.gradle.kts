@@ -7,28 +7,28 @@ plugins {
 }
 
 // Release signing: a properties file with storeFile, storePassword, keyAlias and keyPassword,
-// kept out of the repository. Set zoon.signing to its path, or use the default location.
+// kept out of the repository. Set mune.signing to its path, or use the default location.
 // Without it, release builds are signed with the debug key.
-val signing: Properties? = (providers.gradleProperty("zoon.signing").orNull
-    ?.let(::File) ?: File(System.getProperty("user.home"), ".android-dev/keys/zoon-release.properties"))
+val signing: Properties? = (providers.gradleProperty("mune.signing").orNull
+    ?.let(::File) ?: File(System.getProperty("user.home"), ".android-dev/keys/mune-release.properties"))
     .takeIf { it.isFile }
     ?.let { f -> Properties().apply { f.inputStream().use { load(it) } } }
 
 android {
-    namespace = "app.zoonplayer"
+    namespace = "app.muneplayer"
     compileSdk {
         version = release(37) { minorApiLevel = 0 }
     }
 
     defaultConfig {
-        applicationId = "app.zoonplayer"
+        applicationId = "app.muneplayer"
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
         // Google sign-in and the YouTube Data API (youtube/YouTube.kt). Tests can point these at a stand-in server.
-        buildConfigField("String", "GOOGLE_OAUTH", "\"${providers.gradleProperty("zoon.googleOauth").orNull ?: "https://oauth2.googleapis.com"}\"")
-        buildConfigField("String", "YOUTUBE_API", "\"${providers.gradleProperty("zoon.youtubeApi").orNull ?: "https://www.googleapis.com/youtube/v3"}\"")
+        buildConfigField("String", "GOOGLE_OAUTH", "\"${providers.gradleProperty("mune.googleOauth").orNull ?: "https://oauth2.googleapis.com"}\"")
+        buildConfigField("String", "YOUTUBE_API", "\"${providers.gradleProperty("mune.youtubeApi").orNull ?: "https://www.googleapis.com/youtube/v3"}\"")
     }
 
     signingConfigs {
@@ -82,7 +82,7 @@ tasks.register<Copy>("distApk") {
     dependsOn("assembleRelease")
     from(layout.buildDirectory.dir("outputs/apk/release")) {
         include("*.apk")
-        rename { "Zoon Player.apk" }
+        rename { "Mune Player.apk" }
     }
     into(rootProject.layout.projectDirectory.dir("dist"))
 }

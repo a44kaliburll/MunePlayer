@@ -1,27 +1,27 @@
-// Runs the Zoon Player back end in plain Node (no Electron window) for browser previews:
+// Runs the Mune Player back end in plain Node (no Electron window) for browser previews:
 //   node server/dev.js --port=18751
 // Uses a separate state folder so it never touches the desktop app's data.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { startZoon } from './app.js';
+import { startMune } from './app.js';
 import { stateDir } from './util.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const portArg = process.argv.find((a) => a.startsWith('--port='));
 const port = portArg ? Number(portArg.split('=')[1]) : 18751;
 
-const backend = await startZoon({
+const backend = await startMune({
   stateDir: stateDir(true),
   uiDir: path.join(here, '..', 'ui'),
   port,
   shell: 'browser',
   // Off by default so a preview never fights the desktop app for the Zune.
-  devices: process.env.ZOON_DEVICES === '1' || process.argv.includes('--devices'),
+  devices: process.env.MUNE_DEVICES === '1' || process.argv.includes('--devices'),
   // --phone serves the phone sync API too; --phone-host=127.0.0.1 keeps it off the LAN (emulator tests use 10.0.2.2).
   phoneSync: process.argv.includes('--phone'),
   phoneHost: process.argv.find((a) => a.startsWith('--phone-host='))?.split('=')[1] || '0.0.0.0',
 });
-console.log(`Zoon Player dev server: ${backend.url}`);
+console.log(`Mune Player dev server: ${backend.url}`);
 
 const stop = async () => {
   await backend.shutdown();

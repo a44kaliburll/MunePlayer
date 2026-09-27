@@ -1,4 +1,4 @@
-// Zoon Player — renderer entry point: header, pivots, transport, glow, keyboard.
+// Mune Player — renderer entry point: header, pivots, transport, glow, keyboard.
 import { addToPlaylist, cycleRating, newPlaylist, ui } from './actions.js';
 import { api, native, shellKind, subscribe } from './api.js';
 import { closeMenu, droppedTracks, isTrackDrag, modal, toast } from './components.js';
@@ -69,7 +69,7 @@ function renderChrome() {
 }
 
 function updateProfile() {
-  $('#profile-name').textContent = model.profile.name || 'zoon';
+  $('#profile-name').textContent = model.profile.name || 'mune';
   $('#profile-sub').textContent = `${model.totalPlays().toLocaleString()} plays`;
 }
 
@@ -158,7 +158,7 @@ let lastMusicView = 'artists';
 function showHelp() {
   modal(`
     <h2>help</h2>
-    <p>Zoon Player plays the music in the folders listed under settings &gt; collection. Double-click anything to play it, right-click for more, and drag songs onto the playlist icon at the bottom left.</p>
+    <p>Mune Player plays the music in the folders listed under settings &gt; collection. Double-click anything to play it, right-click for more, and drag songs onto the playlist icon at the bottom left.</p>
     <p><b>Keyboard:</b> Space or Ctrl+P play/pause · Ctrl+F next · Ctrl+B previous · Ctrl+H shuffle · Ctrl+T repeat · F7 mute · F8/F9 volume · Ctrl+E search · Alt+Left back · Ctrl+M compact mode.</p>
     <div class="buttons"><button class="zbtn" data-keys>all shortcuts</button><button class="zbtn primary" data-result="ok">close</button></div>`, {
     onOpen: (dlg, close) => dlg.querySelector('[data-keys]').addEventListener('click', () => {
@@ -196,7 +196,7 @@ function renderMini() {
   mini.innerHTML = `
     <div class="mini-art" style="${t ? `background-image:url('${artUrl(t.albumId, 'm', model.artVersion(t.albumId))}')` : ''}"></div>
     <div class="mini-text">
-      <b>${esc(t ? t.title : 'Zoon')}</b>
+      <b>${esc(t ? t.title : 'Mune')}</b>
       <span>${esc(t ? t.artist || t.aa : 'nothing playing')}</span>
       <div class="mini-bar"><i></i></div>
     </div>
@@ -276,7 +276,7 @@ function wireTransport() {
   player.on('time', updateTime);
   player.on('volume', updateVolume);
   player.on('mode', updateModes);
-  player.on('error', ({ track }) => toast(`Zoon can't play "${track.title}". The file may be missing or in an unsupported format.`, 3500));
+  player.on('error', ({ track }) => toast(`Mune can't play "${track.title}". The file may be missing or in an unsupported format.`, 3500));
   model.on('rating', updateHeart);
   model.on('plays', updateProfile);
   model.on('art', (albumId) => {
@@ -295,9 +295,9 @@ function updateTrack() {
     const title = $('#npmini-title');
     title.textContent = t.title;
     title.title = `${t.title} — ${t.artist || t.aa}`;
-    document.title = `${t.title} - ${t.artist || t.aa} - Zoon`;
+    document.title = `${t.title} - ${t.artist || t.aa} - Mune`;
   } else {
-    document.title = 'Zoon';
+    document.title = 'Mune';
   }
   updateHeart();
   updateTime();
@@ -405,7 +405,7 @@ function wireDock() {
         flyout.hidden = true;
         newPlaylist(ids);
       } else if (kind === 'device') syncTracks(ids);
-      else if (kind === 'disc') toast('Burning CDs isn\'t supported in Zoon Player.', 3000);
+      else if (kind === 'disc') toast('Burning CDs isn\'t supported in Mune Player.', 3000);
     });
   }
   $('[data-dock="playlist"]').addEventListener('click', () => router.go({ pivot: 'collection', sub: 'music', view: 'playlists' }));
@@ -413,7 +413,7 @@ function wireDock() {
     if (model.device?.connected) router.go({ pivot: 'device', sub: 'summary' });
     else toast('Connect your Zune with its USB cable and it will show up here.');
   });
-  $('[data-dock="disc"]').addEventListener('click', () => toast('Burning CDs isn\'t supported in Zoon Player.'));
+  $('[data-dock="disc"]').addEventListener('click', () => toast('Burning CDs isn\'t supported in Mune Player.'));
   document.addEventListener('dragend', () => {
     flyout.hidden = true;
     $$('.dock-btn.drop, #btn-np.drop').forEach((b) => b.classList.remove('drop'));

@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ZoonPlayer"
+rootProject.name = "MunePlayer"
 include(":app")

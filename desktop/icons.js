@@ -61,9 +61,11 @@ const roundRect = (x0, y0, x1, y1, r) => (x, y) => {
   return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
 };
 
+const inCircle = (cx, cy, r) => (x, y) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
+
 const scalePts = (pts, k) => pts.map(([x, y]) => [x * k, y * k]);
 
-/** Pink-to-orange rounded square with a white "z" — the Zune palette, not its logo. */
+/** Pink-to-orange rounded square with a white crescent moon and a sparkle — the Zune palette, not its logo. */
 export function appIconBitmap(size = 256) {
   const k = size / 256;
   const pink = [241, 14, 156];
@@ -77,10 +79,14 @@ export function appIconBitmap(size = 256) {
       1,
     ];
   };
-  const z = scalePts([[70, 66], [188, 66], [188, 92], [110, 164], [188, 164], [188, 190], [68, 190], [68, 164], [146, 92], [70, 92]], k);
+  // The crescent is one circle minus another (the same shapes as the Android icon's vectors).
+  const moon = inCircle(130.23 * k, 127.72 * k, 66.28 * k);
+  const bite = inCircle(158.07 * k, 105.85 * k, 57 * k);
+  const star = scalePts([[163.37, 74.69], [166.89, 87.09], [179.28, 90.6], [166.89, 94.12], [163.37, 106.51], [159.86, 94.12], [147.47, 90.6], [159.86, 87.09]], k);
   return rasterize(size, [
     { hit: roundRect(8 * k, 8 * k, 248 * k, 248 * k, 46 * k), color: grad },
-    { hit: inPoly(z), color: [255, 255, 255, 1] },
+    { hit: (x, y) => moon(x, y) && !bite(x, y), color: [255, 255, 255, 1] },
+    { hit: inPoly(star), color: [255, 255, 255, 1] },
   ], size > 64 ? 2 : 4);
 }
 

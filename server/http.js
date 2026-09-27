@@ -169,7 +169,7 @@ export function createHttpServer(ctx) {
       const url = new URL(req.url, `http://${host}`);
       const { pathname } = url;
       if (pathname.startsWith('/api/')) {
-        const supplied = req.headers['x-zoon-token'] || url.searchParams.get('t');
+        const supplied = req.headers['x-mune-token'] || url.searchParams.get('t');
         if (supplied !== token) throw new HttpError(401, 'Bad token');
         if (req.method !== 'GET' && !String(req.headers['content-type'] || '').startsWith('application/json')) {
           throw new HttpError(415, 'JSON only');
