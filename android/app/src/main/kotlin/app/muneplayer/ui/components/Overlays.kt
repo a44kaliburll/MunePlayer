@@ -11,6 +11,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -118,6 +120,9 @@ private fun Scrim(visible: Boolean, onTap: () -> Unit) {
         )
     }
 }
+
+/** Keeps a tap on a panel from falling through to the scrim behind it, which would close the panel. */
+private fun Modifier.blockTaps() = pointerInput(Unit) { detectTapGestures {} }
 
 @Composable
 private fun <T : Any> rememberLast(value: T?): T? {
@@ -225,7 +230,7 @@ private fun BoxScope.PromptPanel(host: UiHost) {
         val focus = remember { FocusRequester() }
         val accent = LocalAccent.current
         LaunchedEffect(req) { runCatching { focus.requestFocus() } }
-        Column(Modifier.fillMaxWidth().background(Color(0xFF141414)).statusBarsPadding().imePadding().padding(22.dp)) {
+        Column(Modifier.fillMaxWidth().background(Color(0xFF141414)).blockTaps().statusBarsPadding().imePadding().padding(22.dp)) {
             ZText(req.title, Type.label, color = Palette.text2)
             Spacer(Modifier.height(10.dp))
             BasicTextField(
@@ -263,7 +268,7 @@ private fun BoxScope.ConfirmPanel(host: UiHost) {
         exit = fadeOut(tween(150)),
     ) {
         if (req == null) return@AnimatedVisibility
-        Column(Modifier.fillMaxWidth().padding(20.dp).background(Color(0xFF161616)).padding(22.dp)) {
+        Column(Modifier.fillMaxWidth().padding(20.dp).background(Color(0xFF161616)).blockTaps().padding(22.dp)) {
             ZText(req.title, Type.title)
             Spacer(Modifier.height(8.dp))
             ZText(req.text, Type.body, color = Palette.text2)

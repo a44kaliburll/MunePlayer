@@ -85,7 +85,9 @@ fun MuneRoot(graph: AppGraph, nav: Nav) {
     }
 
     val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val inset: Dp = navBar + if (playerState.hasQueue) 72.dp else 12.dp
+    // The YouTube player has its own controls; Mune's mini player (which drives Mune's music) stays out of its way.
+    val miniPlayer = playerState.hasQueue && nav.top.screen != Screen.YouTubePlayer
+    val inset: Dp = navBar + if (miniPlayer) 72.dp else 12.dp
 
     MuneTheme(Color(user.settings.accent)) {
         CompositionLocalProvider(LocalUi provides ui, LocalMune provides actions, LocalBottomInset provides inset) {
@@ -102,7 +104,7 @@ fun MuneRoot(graph: AppGraph, nav: Nav) {
                         Modifier.fillMaxWidth().height(top + 20.dp)
                             .background(Brush.verticalGradient(0f to Color(0xE6000000), 0.55f to Color(0xA0000000), 1f to Color.Transparent)),
                     )
-                    MiniPlayer(Modifier.align(Alignment.BottomCenter))
+                    if (miniPlayer) MiniPlayer(Modifier.align(Alignment.BottomCenter))
                     NowPlayingOverlay()
                 }
                 Overlays(ui)

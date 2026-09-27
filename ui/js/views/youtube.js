@@ -70,6 +70,10 @@ class EmbeddedPlayer {
     this.host.appendChild(this.frame);
   }
 
+  play() {
+    this.#command('playVideo');
+  }
+
   pause() {
     this.#command('pauseVideo');
   }
@@ -100,6 +104,7 @@ class Dock {
   constructor() {
     this.queue = [];
     this.index = -1;
+    this.state = -1; // YouTube's: -1 not started, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued
     this.onChange = null;
     this.node = el(`
       <aside id="yt-dock" class="yt-side">
@@ -107,13 +112,17 @@ class Dock {
         <div class="yt-now"><b></b><span></span></div>
         <div class="yt-controls">
           <button class="zbtn" data-yt="prev">previous</button>
+          <button class="zbtn primary" data-yt="toggle">pause</button>
           <button class="zbtn" data-yt="next">next</button>
+          <button class="zbtn" data-yt="stop">stop</button>
           <a data-yt="open">open in youtube music</a>
         </div>
         <p class="yt-attr">Playing from YouTube. Other apps can't play YouTube as audio only, so the video stays here in the marketplace.</p>
       </aside>`);
     this.embed = new EmbeddedPlayer(this.node.querySelector('.yt-frame'), {
       onState: (s) => {
+        this.state = s;
+        this.node.querySelector('[data-yt="toggle"]').textContent = this.playing ? 'pause' : 'play';
         if (s === 1 && player.playing) player.pause(); // YouTube started: pause Mune's own music
         if (s === 0) this.step(1); // ended: next in the list
       },
@@ -130,6 +139,8 @@ class Dock {
       const act = e.target.closest('[data-yt]')?.dataset.yt;
       if (act === 'prev') this.step(-1);
       else if (act === 'next') this.step(1);
+      else if (act === 'toggle') this.playing ? this.embed.pause() : this.embed.play();
+      else if (act === 'stop') this.stop();
       else if (act === 'open' && this.current) {
         this.embed.pause();
         window.open(`https://music.youtube.com/watch?v=${encodeURIComponent(this.current.id)}`, '_blank');
@@ -140,6 +151,10 @@ class Dock {
 
   get current() {
     return this.queue[this.index] || null;
+  }
+
+  get playing() {
+    return this.state === 1 || this.state === 3;
   }
 
   play(items, i) {
@@ -159,11 +174,14 @@ class Dock {
     if (i >= 0 && i < this.queue.length) this.play(this.queue, i);
   }
 
+  /** Ends playback and closes the player column. */
   stop() {
+    const changed = this.onChange;
     this.embed.destroy();
     this.offPlayer();
     this.node.remove();
     if (dock === this) dock = null;
+    changed?.(); // the list takes the full width again
   }
 }
 

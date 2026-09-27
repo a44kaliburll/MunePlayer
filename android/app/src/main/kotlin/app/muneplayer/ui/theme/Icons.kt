@@ -27,6 +27,7 @@ object ZIcons {
 
     val play = icon("play", fill = "M9 6.5 L18 12 L9 17.5 Z")
     val pause = icon("pause", fill = "M7.5 6h3v12h-3z M13.5 6h3v12h-3z")
+    val stop = icon("stop", fill = "M7 7h10v10H7z")
     val next = icon("next", fill = "M6.5 6.5 L14 12 L6.5 17.5 Z M15.5 6.5h2v11h-2z")
     val previous = icon("previous", fill = "M17.5 6.5 L10 12 L17.5 17.5 Z M6.5 6.5h2v11h-2z")
     val shuffle = icon("shuffle", stroke = "M3.5 7.5h3c3.5 0 5.5 9 9.5 9h4 M17.5 14l2.5 2.5-2.5 2.5 M3.5 16.5h3c1.3 0 2.3-1 3.1-2.4 M13.2 9.9c.8-1.4 1.8-2.4 3-2.4h3.8 M17.5 5l2.5 2.5-2.5 2.5")

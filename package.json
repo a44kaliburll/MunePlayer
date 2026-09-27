@@ -1,7 +1,7 @@
 {
   "name": "mune-player",
   "productName": "Mune Player",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A Zune-inspired music player for your own music library, with Zune HD sync and a companion Android app.",
   "author": "Mune Player",
   "type": "module",

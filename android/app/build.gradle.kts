@@ -24,8 +24,8 @@ android {
         applicationId = "app.muneplayer"
         minSdk = 29
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
         // Google sign-in and the YouTube Data API (youtube/YouTube.kt). Tests can point these at a stand-in server.
         buildConfigField("String", "GOOGLE_OAUTH", "\"${providers.gradleProperty("mune.googleOauth").orNull ?: "https://oauth2.googleapis.com"}\"")
         buildConfigField("String", "YOUTUBE_API", "\"${providers.gradleProperty("mune.youtubeApi").orNull ?: "https://www.googleapis.com/youtube/v3"}\"")

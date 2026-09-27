@@ -18,7 +18,7 @@ npm start
 
 If `npm start` says Electron failed to install, run `node node_modules/electron/install.js` once (newer npm versions skip install scripts, and Electron downloads its binary in one).
 
-- `npm run dist` builds an installer, `dist\Mune Player Setup 1.1.0.exe`, with Start menu entries.
+- `npm run dist` builds an installer, `dist\Mune Player Setup 1.1.1.exe`, with Start menu entries.
 - `node server/dev.js --port=18751` runs the back end without Electron, for a browser preview on `http://127.0.0.1:18751` with its own separate data. Add `?noanim` to the URL in previews that don't run CSS animations.
 
 On first run it watches your Music folder, plus the folders the original Zune software used if it's installed. Change them under **settings > collection**.

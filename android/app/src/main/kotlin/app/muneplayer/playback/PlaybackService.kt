@@ -13,8 +13,11 @@ import android.graphics.Shader
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.view.KeyEvent
+import androidx.core.content.IntentCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
@@ -30,6 +33,7 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.session.CacheBitmapLoader
 import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import coil3.request.ImageRequest
@@ -41,6 +45,7 @@ import app.muneplayer.MuneApp
 import app.muneplayer.data.Session
 import app.muneplayer.data.Song
 import app.muneplayer.data.toCover
+import app.muneplayer.youtube.YtCommand
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import java.io.IOException
@@ -106,7 +111,7 @@ class PlaybackService : MediaSessionService() {
         val open = Intent(this, MainActivity::class.java)
             .setAction(MainActivity.ACTION_NOW_PLAYING)
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-        session = MediaSession.Builder(this, player)
+        session = MediaSession.Builder(this, YouTubeAwarePlayer(player))
             .setSessionActivity(PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
             .setBitmapLoader(CacheBitmapLoader(ArtworkLoader(this)))
             .setCallback(Callback())
@@ -139,7 +144,76 @@ class PlaybackService : MediaSessionService() {
         super.onDestroy()
     }
 
+    /**
+     * Android's own media controls (quick settings, the lock screen) and other apps drive the session through its
+     * player. While the YouTube screen is in front their play, pause, next and previous go to YouTube instead; Mune's
+     * own screens (this app's controller) still drive Mune's music. Play and pause both toggle YouTube, since those
+     * controls show Mune's (paused) state. Stop stays with Mune: swiping Mune's notification away stops Mune's music
+     * this way.
+     */
+    private inner class YouTubeAwarePlayer(player: Player) : ForwardingPlayer(player) {
+        private fun toYouTube(command: YtCommand): Boolean {
+            val yt = MuneApp.graph.youtube
+            val s = session ?: return false
+            val from = s.controllerForCurrentRequest ?: return false
+            // Media3 reports Android's media controls as the session's own notification controller, which has this
+            // app's package name, so only Mune's screens are told apart by package.
+            val mune = from.packageName == packageName && !s.isMediaNotificationController(from)
+            if (!yt.active.value || mune) return false
+            yt.remote.tryEmit(command)
+            return true
+        }
+
+        override fun play() {
+            if (!toYouTube(YtCommand.Toggle)) super.play()
+        }
+
+        override fun pause() {
+            if (!toYouTube(YtCommand.Toggle)) super.pause()
+        }
+
+        override fun setPlayWhenReady(playWhenReady: Boolean) {
+            if (!toYouTube(YtCommand.Toggle)) super.setPlayWhenReady(playWhenReady)
+        }
+
+        override fun seekToNext() {
+            if (!toYouTube(YtCommand.Next)) super.seekToNext()
+        }
+
+        override fun seekToNextMediaItem() {
+            if (!toYouTube(YtCommand.Next)) super.seekToNextMediaItem()
+        }
+
+        override fun seekToPrevious() {
+            if (!toYouTube(YtCommand.Previous)) super.seekToPrevious()
+        }
+
+        override fun seekToPreviousMediaItem() {
+            if (!toYouTube(YtCommand.Previous)) super.seekToPreviousMediaItem()
+        }
+    }
+
     private inner class Callback : MediaSession.Callback {
+        // While the YouTube player screen is in front, headset, Bluetooth and notification buttons drive YouTube.
+        override fun onMediaButtonEvent(session: MediaSession, controllerInfo: MediaSession.ControllerInfo, intent: Intent): Boolean {
+            val yt = MuneApp.graph.youtube
+            val key = IntentCompat.getParcelableExtra(intent, Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+            // Swiping Mune's notification away arrives as a stop button; that one is for Mune's music.
+            val dismissed = intent.getBooleanExtra(MediaNotification.NOTIFICATION_DISMISSED_EVENT_KEY, false)
+            if (!yt.active.value || key == null || dismissed) return super.onMediaButtonEvent(session, controllerInfo, intent)
+            val command = when (key.keyCode) {
+                KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_HEADSETHOOK -> YtCommand.Toggle
+                KeyEvent.KEYCODE_MEDIA_PLAY -> YtCommand.Play
+                KeyEvent.KEYCODE_MEDIA_PAUSE -> YtCommand.Pause
+                KeyEvent.KEYCODE_MEDIA_NEXT -> YtCommand.Next
+                KeyEvent.KEYCODE_MEDIA_PREVIOUS -> YtCommand.Previous
+                KeyEvent.KEYCODE_MEDIA_STOP -> YtCommand.Stop
+                else -> return super.onMediaButtonEvent(session, controllerInfo, intent)
+            }
+            if (key.action == KeyEvent.ACTION_DOWN && key.repeatCount == 0) yt.remote.tryEmit(command)
+            return true
+        }
+
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,

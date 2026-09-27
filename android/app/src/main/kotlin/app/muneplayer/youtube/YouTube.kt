@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
@@ -43,6 +44,9 @@ data class YtQueue(val items: List<YtItem>, val index: Int) {
     val current: YtItem? get() = items.getOrNull(index)
 }
 
+/** A media button (headset, Bluetooth, the system's media controls) meant for the YouTube player screen. */
+enum class YtCommand { Toggle, Play, Pause, Next, Previous, Stop }
+
 class YtError(message: String) : IOException(message)
 
 private class OAuthError(val code: String?, message: String) : IOException(message)
@@ -60,6 +64,12 @@ class YouTube(private val http: OkHttpClient, private val file: File, private va
 
     /** The list the player screen is playing from. */
     val queue = MutableStateFlow<YtQueue?>(null)
+
+    /** True while the player screen is on screen and in front; media buttons then drive YouTube (PlaybackService). */
+    val active = MutableStateFlow(false)
+
+    /** Media buttons forwarded by PlaybackService while [active]. */
+    val remote = MutableSharedFlow<YtCommand>(extraBufferCapacity = 8)
 
     /** The music page reopens on the last search (cached, so it costs no quota). */
     var lastQuery = ""

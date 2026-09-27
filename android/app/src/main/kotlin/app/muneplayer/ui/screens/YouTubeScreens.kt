@@ -10,6 +10,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -34,6 +36,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -44,9 +48,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -59,6 +66,7 @@ import app.muneplayer.ui.LocalBottomInset
 import app.muneplayer.ui.LocalMune
 import app.muneplayer.ui.Screen
 import app.muneplayer.ui.components.ActionLink
+import app.muneplayer.ui.components.CircleButton
 import app.muneplayer.ui.components.PivotHeader
 import app.muneplayer.ui.components.PromptRequest
 import app.muneplayer.ui.components.ZIcon
@@ -71,6 +79,7 @@ import app.muneplayer.ui.theme.Type
 import app.muneplayer.ui.theme.ZIcons
 import app.muneplayer.util.fmtTime
 import app.muneplayer.util.plural
+import app.muneplayer.youtube.YtCommand
 import app.muneplayer.youtube.YtItem
 import app.muneplayer.youtube.YtState
 import coil3.compose.AsyncImage
@@ -277,7 +286,12 @@ fun YouTubePlaylistScreen(id: String, title: String) {
 
 // ------------------------------------------------------------ the player
 /** Called from the player page (see playerPage). Kept by name in proguard-rules.pro. */
-class YtBridge(private val main: Handler, private val state: (Int) -> Unit, private val error: (Int) -> Unit) {
+class YtBridge(
+    private val main: Handler,
+    private val state: (Int) -> Unit,
+    private val error: (Int) -> Unit,
+    private val time: (Double, Double) -> Unit,
+) {
     @JavascriptInterface
     fun onState(s: Int) {
         main.post { state(s) }
@@ -287,6 +301,11 @@ class YtBridge(private val main: Handler, private val state: (Int) -> Unit, priv
     fun onError(code: Int) {
         main.post { error(code) }
     }
+
+    @JavascriptInterface
+    fun onTime(position: Double, duration: Double) {
+        main.post { time(position, duration) }
+    }
 }
 
 /** YouTube's IFrame Player API in a page of its own, reporting back through the Mune bridge. */
@@ -294,47 +313,66 @@ private fun playerPage(videoId: String) = """<!doctype html><html><head><meta na
 <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p{position:absolute;top:0;left:0;width:100%;height:100%}</style></head>
 <body><div id="p"></div><script>
 var player;
-function onYouTubeIframeAPIReady(){player=new YT.Player('p',{width:'100%',height:'100%',videoId:${JSONObject.quote(videoId)},playerVars:{autoplay:1,playsinline:1,rel:0},events:{onStateChange:function(e){Mune.onState(e.data)},onError:function(e){Mune.onError(e.data)}}});}
+function onYouTubeIframeAPIReady(){player=new YT.Player('p',{width:'100%',height:'100%',videoId:${JSONObject.quote(videoId)},playerVars:{autoplay:1,playsinline:1,rel:0},events:{onStateChange:function(e){Mune.onState(e.data)},onError:function(e){Mune.onError(e.data)}}});
+setInterval(function(){if(player&&player.getCurrentTime)Mune.onTime(player.getCurrentTime()||0,player.getDuration()||0);},500);}
 function load(id){if(player&&player.loadVideoById)player.loadVideoById(id);}
+function play(){if(player&&player.playVideo)player.playVideo();}
 function pause(){if(player&&player.pauseVideo)player.pauseVideo();}
+function stop(){if(player&&player.stopVideo)player.stopVideo();}
+function seek(s){if(player&&player.seekTo)player.seekTo(s,true);}
 </script><script src="https://www.youtube.com/iframe_api"></script></body></html>"""
+
+/** Lets the screen drive the player page. */
+private class YtWeb {
+    var view: WebView? = null
+
+    private fun js(code: String) {
+        view?.evaluateJavascript(code, null)
+    }
+
+    fun play() = js("play()")
+    fun pause() = js("pause()")
+    fun stop() = js("stop()")
+    fun seek(seconds: Double) = js("seek($seconds)")
+    fun load(id: String) = js("load(${JSONObject.quote(id)})")
+}
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 private fun YouTubePlayerView(
     videoId: String,
+    web: YtWeb,
     munePlaying: Boolean,
-    onPlaying: () -> Unit,
-    onEnded: () -> Unit,
+    onState: (Int) -> Unit,
+    onTime: (Double, Double) -> Unit,
     onError: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val playing by rememberUpdatedState(onPlaying)
-    val ended by rememberUpdatedState(onEnded)
+    val state by rememberUpdatedState(onState)
+    val time by rememberUpdatedState(onTime)
     val failed by rememberUpdatedState(onError)
-    val web = remember { arrayOfNulls<WebView>(1) }
     var shown by remember { mutableStateOf(videoId) }
 
     LaunchedEffect(videoId) {
         if (videoId != shown) {
-            web[0]?.evaluateJavascript("load(${JSONObject.quote(videoId)})", null)
+            web.load(videoId)
             shown = videoId
         }
     }
-    // Mune's own music pauses YouTube (and YouTube starting pauses Mune: onPlaying).
+    // Mune's own music pauses YouTube (and YouTube starting pauses Mune: see onState).
     LaunchedEffect(munePlaying) {
-        if (munePlaying) web[0]?.evaluateJavascript("pause()", null)
+        if (munePlaying) web.pause()
     }
     // No background play: pause whenever Mune leaves the screen.
     DisposableEffect(lifecycle) {
         val observer = LifecycleEventObserver { _, e ->
             when (e) {
-                Lifecycle.Event.ON_PAUSE -> web[0]?.run {
-                    evaluateJavascript("pause()", null)
-                    onPause()
+                Lifecycle.Event.ON_PAUSE -> {
+                    web.pause()
+                    web.view?.onPause()
                 }
-                Lifecycle.Event.ON_RESUME -> web[0]?.onResume()
+                Lifecycle.Event.ON_RESUME -> web.view?.onResume()
                 else -> Unit
             }
         }
@@ -348,18 +386,41 @@ private fun YouTubePlayerView(
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
                 settings.mediaPlaybackRequiresUserGesture = false
-                addJavascriptInterface(YtBridge(Handler(Looper.getMainLooper()), { s -> if (s == 1) playing() else if (s == 0) ended() }, { c -> failed(c) }), "Mune")
+                addJavascriptInterface(YtBridge(Handler(Looper.getMainLooper()), { s -> state(s) }, { c -> failed(c) }, { p, d -> time(p, d) }), "Mune")
                 // YouTube identifies apps that embed its player by the Referer: https://<app id>.
                 loadDataWithBaseURL("https://${ctx.packageName}/", playerPage(videoId), "text/html", "utf-8", null)
-                web[0] = this
+                web.view = this
             }
         },
         onRelease = {
-            web[0] = null
+            web.view = null
             it.destroy()
         },
         modifier = modifier,
     )
+}
+
+/** Elapsed and remaining time over a thin bar; tap the bar to jump. */
+@Composable
+private fun YtProgress(position: Double, duration: Double, onSeek: (Double) -> Unit, modifier: Modifier = Modifier) {
+    val accent = LocalAccent.current
+    val fraction = if (duration > 0) (position / duration).toFloat().coerceIn(0f, 1f) else 0f
+    Column(modifier.fillMaxWidth()) {
+        Box(
+            Modifier.fillMaxWidth().height(24.dp).pointerInput(duration) {
+                detectTapGestures { o -> if (duration > 0) onSeek(duration * (o.x / size.width).coerceIn(0f, 1f)) }
+            },
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Box(Modifier.fillMaxWidth().height(3.dp).background(Palette.line))
+            Box(Modifier.fillMaxWidth(fraction).height(3.dp).background(accent))
+        }
+        Row(Modifier.fillMaxWidth()) {
+            ZText(fmtTime((position * 1000).toLong()), Type.small, color = Palette.text3)
+            Spacer(Modifier.weight(1f))
+            if (duration > 0) ZText("-" + fmtTime(((duration - position).coerceAtLeast(0.0) * 1000).toLong()), Type.small, color = Palette.text3)
+        }
+    }
 }
 
 @Composable
@@ -368,8 +429,14 @@ fun YouTubePlayerScreen() {
     val yt = MuneApp.graph.youtube
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
     val queue by yt.queue.collectAsStateWithLifecycle()
     val player by z.player.state.collectAsStateWithLifecycle()
+    val web = remember { YtWeb() }
+    // YouTube's player states: -1 not started, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued.
+    var state by remember { mutableIntStateOf(-1) }
+    var position by remember { mutableDoubleStateOf(0.0) }
+    var duration by remember { mutableDoubleStateOf(0.0) }
     val q = queue
     val v = q?.current
     if (q == null || v == null) {
@@ -379,12 +446,55 @@ fun YouTubePlayerScreen() {
         }
         return
     }
+
+    fun toggle() = if (state == 1 || state == 3) web.pause() else web.play()
+    // Like the Zune: back to the start of the song, or to the one before if it has only just started.
+    fun previous() = if (position > 3 || (yt.queue.value?.index ?: 0) == 0) web.seek(0.0) else yt.step(-1)
+    fun stop() {
+        web.stop()
+        z.nav.back()
+    }
+
+    LaunchedEffect(v.id) {
+        position = 0.0
+        duration = (v.duration ?: 0).toDouble()
+    }
+    // Headset, Bluetooth and the system's media controls drive YouTube while this screen is in front.
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { owner, _ -> yt.active.value = owner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) }
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            yt.active.value = false
+        }
+    }
+    LaunchedEffect(Unit) {
+        yt.remote.collect { cmd ->
+            when (cmd) {
+                YtCommand.Toggle -> toggle()
+                YtCommand.Play -> web.play()
+                YtCommand.Pause -> web.pause()
+                YtCommand.Next -> yt.step(1)
+                YtCommand.Previous -> previous()
+                YtCommand.Stop -> stop()
+            }
+        }
+    }
+
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         YouTubePlayerView(
             videoId = v.id,
+            web = web,
             munePlaying = player.isPlaying,
-            onPlaying = { if (z.player.state.value.isPlaying) z.player.pause() },
-            onEnded = { yt.step(1) },
+            onState = { s ->
+                state = s
+                if (s == 1 && z.player.state.value.isPlaying) z.player.pause() // YouTube started: pause Mune's own music
+                if (s == 0) yt.step(1) // ended: next in the list
+            },
+            onTime = { p, d ->
+                position = p
+                if (d > 0) duration = d
+            },
             onError = { code ->
                 z.ui.toast(if (code == 101 || code == 150) "That song's owner doesn't let it play outside YouTube." else "YouTube couldn't play that song (error $code).")
                 scope.launch {
@@ -399,14 +509,31 @@ fun YouTubePlayerScreen() {
                 Column(Modifier.padding(top = 10.dp)) {
                     ZText(v.title, Type.item, maxLines = 3)
                     ZText(v.artist, Type.sub, color = Palette.text3, maxLines = 1)
-                    Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-                        if (q.index > 0) ActionLink("previous", ZIcons.previous, onClick = { yt.step(-1) })
-                        if (q.index < q.items.size - 1) ActionLink("next", ZIcons.next, onClick = { yt.step(1) })
+                    YtProgress(position, duration, onSeek = { web.seek(it) }, modifier = Modifier.padding(top = 12.dp))
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val playing = state == 1 || state == 3
+                        CircleButton(ZIcons.previous, onClick = { previous() }, size = 50.dp, modifier = Modifier.semantics { contentDescription = "previous" })
+                        CircleButton(
+                            if (playing) ZIcons.pause else ZIcons.play, onClick = { toggle() }, size = 66.dp, filled = true,
+                            modifier = Modifier.semantics { contentDescription = if (playing) "pause" else "play" },
+                        )
+                        CircleButton(
+                            ZIcons.next, onClick = { yt.step(1) }, size = 50.dp, tint = if (q.index < q.items.size - 1) Palette.text else Palette.text3,
+                            modifier = Modifier.semantics { contentDescription = "next" },
+                        )
+                        CircleButton(ZIcons.stop, onClick = { stop() }, size = 50.dp, modifier = Modifier.semantics { contentDescription = "stop" })
                     }
                     ActionLink(
                         "open in youtube music", null,
-                        onClick = { openUrl(context, "https://music.youtube.com/watch?v=${Uri.encode(v.id)}") },
-                        accent = true, modifier = Modifier.padding(top = 10.dp),
+                        onClick = {
+                            web.pause()
+                            openUrl(context, "https://music.youtube.com/watch?v=${Uri.encode(v.id)}")
+                        },
+                        accent = true, modifier = Modifier.padding(top = 14.dp),
                     )
                     ZText(
                         "Playing from YouTube. Other apps can't play YouTube as audio only or in the background, so it pauses when you leave this screen.",
