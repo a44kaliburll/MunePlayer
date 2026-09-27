@@ -171,6 +171,7 @@ private fun HomeMenu() {
         add("smart dj" to { z.nav.go(Screen.SmartDj) })
         add("playlists" to { z.nav.go(Screen.Music(3)) })
         add("search" to { z.nav.go(Screen.Search) })
+        add("youtube" to { z.nav.go(if (z.graph.youtube.state.value.signedIn) Screen.YouTubeHome() else Screen.YouTubeSetup) })
         add("sync" to { z.nav.go(Screen.Sync) })
         add("settings" to { z.nav.go(Screen.Settings) })
     }

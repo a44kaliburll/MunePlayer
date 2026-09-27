@@ -98,6 +98,7 @@ fun SettingsScreen() {
     val user by z.store.state.collectAsStateWithLifecycle()
     val lib by graph.library.state.collectAsStateWithLifecycle()
     val pc by graph.pc.pc.collectAsStateWithLifecycle()
+    val youtube by graph.youtube.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val s = user.settings
     fun set(fn: (Settings) -> Settings) = z.store.updateSettings(fn)
@@ -156,6 +157,22 @@ fun SettingsScreen() {
                 ToggleRow("artist photos", "The big pictures behind now playing and artist pages.", s.artistPhotos) { v -> set { it.copy(artistPhotos = v) } }
                 ToggleRow("find missing album art", null, s.onlineArt) { v -> set { it.copy(onlineArt = v) } }
                 ToggleRow("related artists for smart dj", null, s.related) { v -> set { it.copy(related = v) } }
+                Row(
+                    Modifier.fillMaxWidth().pressable(scaleTo = 0.985f) { z.nav.go(Screen.YouTubeSetup) }.padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        ZText("youtube music", Type.item)
+                        ZText(
+                            when {
+                                youtube.signedIn -> "signed in" + (youtube.channel?.let { " as $it" } ?: "")
+                                youtube.configured -> "not signed in"
+                                else -> "Search and play YouTube Music, with video."
+                            },
+                            Type.sub, color = Palette.text3,
+                        )
+                    }
+                }
             }
         }
 

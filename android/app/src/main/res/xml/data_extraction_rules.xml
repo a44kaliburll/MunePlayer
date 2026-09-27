@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <!-- Hearts, plays, pins and playlists are worth backing up; the PC pairing token is not. -->
+    <!-- Hearts, plays, pins and playlists are worth backing up; the PC pairing token and the YouTube sign-in are not. -->
     <cloud-backup>
         <exclude domain="file" path="pc.json" />
+        <exclude domain="file" path="youtube.json" />
         <exclude domain="file" path="art" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="file" path="pc.json" />
+        <exclude domain="file" path="youtube.json" />
     </device-transfer>
 </data-extraction-rules>

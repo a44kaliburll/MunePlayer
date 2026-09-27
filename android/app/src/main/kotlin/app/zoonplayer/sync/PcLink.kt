@@ -172,6 +172,12 @@ class PcClient(http: OkHttpClient, val host: String, val port: Int, private val 
 
     suspend fun report(body: JSONObject): JSONObject = postJson("/report", body)
 
+    /** The Google OAuth client set up for YouTube Music in Zoon Player on the PC, to sign in with here too. */
+    suspend fun youtubeClient(): Pair<String, String> {
+        val j = getJson("/youtube")
+        return j.getString("clientId") to j.getString("clientSecret")
+    }
+
     /** Opens a song (or art) download. The caller closes the response. Blocking; call on IO. */
     fun open(url: String): Response = files.newCall(request(url).build()).execute().check()
 }

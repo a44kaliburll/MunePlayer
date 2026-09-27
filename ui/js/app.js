@@ -13,10 +13,12 @@ import { NowPlaying } from './views/nowplaying.js';
 import { placeholderView, searchView, socialView } from './views/other.js';
 import { quickplayView } from './views/quickplay.js';
 import { GLOWS, settingsView } from './views/settings.js';
+import { youtubeView } from './views/youtube.js';
 
 const SUBPIVOTS = {
   collection: ['music', 'videos', 'pictures', 'podcasts', 'channels'],
-  marketplace: ['music', 'videos', 'podcasts', 'apps'],
+  // The marketplace is YouTube Music now (views/youtube.js).
+  marketplace: ['music', 'playlists', 'liked'],
   device: ['summary', 'music'],
 };
 const MUSIC_VIEWS = ['artists', 'genres', 'albums', 'songs', 'playlists'];
@@ -55,7 +57,7 @@ function renderChrome() {
   const subs = titleMode ? ['software'] : SUBPIVOTS[pivot] || [];
   const subpivots = $('#subpivots');
   if (pivot === 'search') {
-    subpivots.innerHTML = `<a class="on">results for "${esc(params.q || '')}"</a>`;
+    subpivots.innerHTML = `<a class="on">results for "${esc(params.q || '')}"</a>${model.youtube.signedIn && params.q ? '<a data-ytsearch>on youtube music</a>' : ''}`;
   } else {
     subpivots.innerHTML = subs.map((s) => `<a data-sub="${s}" class="${s === sub || titleMode ? 'on' : ''}">${s}</a>`).join('');
   }
@@ -85,7 +87,8 @@ function renderPage() {
   view?.destroy?.();
   view = null;
   const page = $('#page');
-  page.innerHTML = '';
+  // The YouTube player column (views/youtube.js) outlives page changes within the marketplace.
+  for (const child of [...page.children]) if (child.id !== 'yt-dock') child.remove();
   const state = router.state;
   if (state.pivot === 'collection' && state.sub === 'music' && state.view) lastMusicView = state.view;
   const host = document.createElement('div');
@@ -93,7 +96,7 @@ function renderPage() {
   page.appendChild(host);
   if (state.pivot === 'quickplay') view = quickplayView(host);
   else if (state.pivot === 'collection') view = state.sub === 'music' ? collectionView(host, state) : placeholderView(host, state.sub);
-  else if (state.pivot === 'marketplace') view = placeholderView(host, 'marketplace');
+  else if (state.pivot === 'marketplace') view = youtubeView(host, state);
   else if (state.pivot === 'social') view = socialView(host);
   else if (state.pivot === 'settings') view = settingsView(host);
   else if (state.pivot === 'search') view = searchView(host, state);
@@ -110,6 +113,10 @@ function wireHeader() {
       const pivot = p.dataset.pivot;
       if (pivot === 'collection') router.go({ pivot, sub: 'music', view: lastMusicView });
       else router.go({ pivot, sub: pivot === 'marketplace' ? 'music' : pivot === 'device' ? 'summary' : '' });
+      return;
+    }
+    if (e.target.closest('[data-ytsearch]')) {
+      router.go({ pivot: 'marketplace', sub: 'music', params: { q: router.state.params.q } });
       return;
     }
     const s = e.target.closest('[data-sub]');
@@ -635,6 +642,11 @@ function wireEvents() {
       model.phone = status;
       model.emit('phone', status);
     },
+    youtube: (status) => {
+      model.youtube = status;
+      model.emit('youtube', status);
+      renderChrome();
+    },
     phonepaired: ({ name }) => toast(`${name} is paired with this PC`, 4000),
     phonesynced: ({ name, added }) => toast(added ? `${name} synced ${plural(added, 'new song')}` : `${name} is up to date`, 4000),
     art: ({ albumId, has }) => {
@@ -658,6 +670,7 @@ async function boot() {
   model.setPlaylists(data.playlists);
   model.device = data.device || null;
   model.phone = data.phone || null;
+  model.youtube = data.youtube || model.youtube;
 
   mixview = new Mixview($('#mixview'), { onClose: applyTheme, winButtons: winButtonsHtml() });
   ui.openMixview = (name) => {

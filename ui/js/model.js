@@ -15,6 +15,7 @@ class Model extends Emitter {
   playlistList = [];
   user = { settings: {}, ratings: {}, plays: {}, lastPlayed: {}, pins: [], history: [], session: null };
   profile = { name: '' };
+  youtube = { configured: false, signedIn: false };
   scan = { scanning: false };
   platform = {};
   artVer = new Map();

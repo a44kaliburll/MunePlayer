@@ -1,4 +1,4 @@
-// search results, social (a local Zoon card), marketplace and the not-yet-built media types.
+// search results, social (a local Zoon card) and the not-yet-built media types.
 import { albumMenu, artistMenu, goToAlbum, goToArtist, playItem } from '../actions.js';
 import { Selection, Virtual, showMenu, startDrag } from '../components.js';
 import { model } from '../model.js';
@@ -168,11 +168,6 @@ const PLACEHOLDERS = {
   }),
   podcasts: () => ({ title: 'podcasts', body: 'Podcast subscriptions aren\'t part of Zoon Player yet.' }),
   channels: () => ({ title: 'channels', body: 'Zune channels were a streaming service. They went away with the Zune service in 2015.' }),
-  marketplace: () => ({
-    title: 'the marketplace is closed',
-    body: 'The Zune Marketplace shut down on November 15, 2015. Zoon Player uses public music catalogs to find missing album art, artist photos for now playing, and related artists for Smart DJ. You can turn those off in settings.',
-    button: ['online settings', { pivot: 'settings', params: { section: 'online' } }],
-  }),
 };
 
 export function placeholderView(page, key) {

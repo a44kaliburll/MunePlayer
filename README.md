@@ -40,10 +40,24 @@ On first run it watches your Music folder, plus the folders the original Zune so
 | your name, this PC's name, your Zune's name | yes: settings > account, settings > phone, and "rename" on the device page (your name starts as your Windows account name) |
 | Zune HD sync | yes: "device" pivot, sync all music or drag / right-click "sync with …", remove from device, the device's play counts flow back |
 | wireless sync with the Android app | yes (settings > phone) |
-| marketplace, videos, pictures, podcasts, channels | placeholders |
+| marketplace | YouTube Music: search, your YouTube playlists and liked songs, played in YouTube's own player with video (see below) |
+| videos, pictures, podcasts, channels | placeholders |
 | video / picture / podcast sync, CD burning and ripping | not supported |
 
-Missing album art is looked up online (Deezer, then iTunes). Every online feature can be switched off in **settings > online**; only artist and album names are sent.
+Missing album art is looked up online (Deezer, then iTunes). Every online feature can be switched off in **settings > online**; only artist and album names are sent. YouTube Music, if you set it up, talks to Google with your own account.
+
+### YouTube Music
+
+The marketplace searches YouTube Music and plays your YouTube playlists and liked songs, through YouTube's official APIs. Songs play in YouTube's own embedded player, with video, beside the list. That brings some limits from YouTube's rules for other apps: the video always shows, nothing plays in the background or as audio only (the player stops when you leave the marketplace), there may be ads without YouTube Premium, and YouTube songs can't be copied to a phone or a Zune. Songs you uploaded to YouTube Music aren't reachable through YouTube's API.
+
+Nothing is built in: you use your own free Google Cloud project, set up once.
+
+1. At [console.cloud.google.com](https://console.cloud.google.com), create a project and enable the **YouTube Data API v3** (APIs & Services > Library).
+2. In **Google Auth Platform**, set the app up as **External**. Under **Audience**, add yourself as a test user, or choose **Publish app** so the sign-in doesn't expire every 7 days. (Google warns that the app is unverified; it's your own project.)
+3. Under **Clients**, create a client of the type **TVs and Limited Input devices**.
+4. In Zoon Player, **settings > online > youtube music**: paste the client ID and secret, then **sign in with Google**. Zoon shows a code to enter at google.com/device.
+
+The Android app can copy the client from the PC it's paired with, then signs in the same way. The sign-in is kept on each device (encrypted with your Windows account on the PC) and can be removed at any time from your Google Account. A search uses 100 of the project's 10,000 free daily YouTube quota units; everything else uses 1.
 
 ### Syncing a Zune HD
 
@@ -74,7 +88,7 @@ The phone finds the PC with a UDP broadcast on port 18761 and then uses a small 
 ### Code map
 
 - `main.js`, `preload.cjs`, `desktop/`: the Electron window (frameless, compact mode, taskbar buttons, icons drawn in code).
-- `server/`: a local HTTP server on 127.0.0.1. It scans folders (music-metadata), caches art, reads and writes `.zpl` files, does the online lookups and streams audio with byte ranges. Every API call needs a per-launch token. `phone.js` is the separate, opt-in LAN server for the phone.
+- `server/`: a local HTTP server on 127.0.0.1. It scans folders (music-metadata), caches art, reads and writes `.zpl` files, does the online lookups and streams audio with byte ranges. Every API call needs a per-launch token. `phone.js` is the separate, opt-in LAN server for the phone; `youtube.js` is the Google sign-in and YouTube Data API client (the player itself is `ui/js/views/youtube.js`).
 - `ui/`: plain HTML, CSS and ES modules, no build step. `js/app.js` is the shell; the views are in `js/views/`.
 - `native/`: the Zune HD helper.
 - `android/`: the Android app (Kotlin, Jetpack Compose, Media3).

@@ -1,7 +1,7 @@
 // Zoon Player — Electron main process.
 // Starts the local library server, then shows it in a frameless window styled
 // like the Zune 4.8 desktop software.
-import { app, BrowserWindow, dialog, ipcMain, nativeImage, screen, shell } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, safeStorage, screen, session, shell } from 'electron';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +19,8 @@ const capturePath = arg('capture'); // --capture=out.png: screenshot the window,
 // --state=<dir> points a test run at a throwaway state folder (e.g. to check first-run behaviour).
 const dir = arg('state') ? (fs.mkdirSync(arg('state'), { recursive: true }), arg('state')) : stateDir(serveOnly || !!capturePath);
 app.setPath('userData', path.join(dir, 'electron'));
-app.setAppUserModelId('app.zoonplayer');
+const APP_ID = 'app.zoonplayer';
+app.setAppUserModelId(APP_ID);
 
 const FULL_MIN = { width: 900, height: 600 };
 const COMPACT = { width: 390, height: 96 };
@@ -221,6 +222,11 @@ app.whenReady().then(async () => {
   appIcon = makeImage(appIconBitmap(256), 256);
   for (const name of ['play', 'pause', 'prev', 'next']) thumbIcons[name] = makeImage(thumbBitmap(name), 16);
 
+  // YouTube's embedded player needs to know which app embeds it; desktop apps send their app ID as the Referer.
+  session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['https://www.youtube.com/embed/*'] }, (details, done) => {
+    done({ requestHeaders: { ...details.requestHeaders, Referer: `https://${APP_ID}/` } });
+  });
+
   const portArg = arg('port');
   backend = await startZoon({
     stateDir: dir,
@@ -235,6 +241,9 @@ app.whenReady().then(async () => {
     platform: {
       reveal: (p) => shell.showItemInFolder(p),
       trash: (p) => shell.trashItem(p),
+      // Keeps the YouTube sign-in encrypted with the Windows account (DPAPI).
+      protect: (text) => (safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(text).toString('base64') : null),
+      unprotect: (sealed) => safeStorage.decryptString(Buffer.from(sealed, 'base64')),
     },
   });
   console.log(`Zoon Player server at ${backend.url}`);

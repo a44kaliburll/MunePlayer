@@ -1,0 +1,79 @@
+/* ---------- marketplace: YouTube Music (views/youtube.js) ---------- */
+.yt {
+  /* YouTube asks for embedded players of at least 480 x 270 */
+  --yt-player: clamp(480px, 44vw, 720px);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  padding: 6px var(--gutter-r) 0 var(--gutter-l);
+}
+.yt.docked { padding-right: calc(var(--gutter-r) + var(--yt-player) + 32px); }
+.yt-main { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.yt-main .placeholder { position: static; padding: 30px 0 0; }
+/* The player column sits in #page itself so it survives moving between marketplace pages. */
+#yt-dock {
+  position: absolute;
+  z-index: 3;
+  top: 6px;
+  right: var(--gutter-r);
+  bottom: 0;
+  width: clamp(480px, 44vw, 720px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-bottom: 90px;
+}
+.yt-frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; flex: none; }
+.yt-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt-now b { display: block; font-size: 22px; line-height: 1.2; font-weight: 300; color: var(--text-strong); }
+.yt-now span { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-2); }
+.yt-controls { display: flex; align-items: center; gap: 8px; }
+.yt-controls a { margin-left: auto; }
+.yt-controls a, .yt-head a {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.yt-controls a:hover, .yt-head a:hover { color: var(--pink); }
+.yt-attr { margin: 0; font-size: 10.5px; line-height: 1.5; color: var(--text-3); }
+
+.yt-search { margin: 2px 0 12px; max-width: 560px; }
+.yt-head { display: flex; align-items: baseline; gap: 14px; margin: 0 0 8px; }
+.yt-head h2 { margin: 0; font-size: 26px; font-weight: 300; line-height: 1.1; color: var(--text-strong); text-transform: lowercase; }
+.yt-list { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 90px; }
+.yt-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 6px 6px 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.yt-row:hover { background: var(--hover); }
+.yt-row img, .yt-row .noart { width: 128px; height: 72px; flex: none; object-fit: cover; background: var(--tile-empty); }
+.yt-meta { min-width: 0; }
+.yt-meta b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yt-meta span { font-size: 11px; color: var(--text-2); }
+.yt-row.on .yt-meta b { color: var(--pink); }
+.yt-empty { padding: 10px 0; font-size: 12.5px; line-height: 1.5; color: var(--text-2); max-width: 560px; }
+.yt-empty.err { color: var(--pink); }
+
+/* settings > online > youtube music */
+.yt-steps { margin: 0 0 12px; padding-left: 18px; max-width: 640px; font-size: 12px; line-height: 1.6; color: var(--text-2); }
+.yt-steps b { color: var(--text); font-weight: 600; }
+.yt-client { flex-wrap: wrap; margin-bottom: 8px; }
+.yt-client input { min-width: 220px; }
+.yt-code { font-size: 40px; letter-spacing: 0.04em; white-space: normal; overflow-wrap: anywhere; }
+.settings .yt-fine { font-size: 10.5px; color: var(--text-3); }
+.settings .yt-fine a { color: var(--text-2); text-decoration: underline; }

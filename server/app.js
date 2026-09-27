@@ -14,6 +14,7 @@ import { ZuneSync } from './sync.js';
 import { JsonStore } from './store.js';
 import { Transcoder } from './transcode.js';
 import { cleanName, myMusicFolder } from './util.js';
+import { YouTube } from './youtube.js';
 import { importZuneFolders } from './zune-import.js';
 
 const MAX_HISTORY = 60;
@@ -104,7 +105,10 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
   const bridge = new DeviceBridge(exePath(path.resolve(uiDir, '..')));
   const sync = new ZuneSync({ bridge, library, art, user, cacheDir: path.join(stateDir, 'sync-cache'), ffmpeg: null });
   transcoder.ready.then(() => { sync.ffmpeg = transcoder.ffmpeg; });
-  const phone = new PhoneSync({ user, library, art, playlists, cacheDir: path.join(stateDir, 'phone-cache'), getFfmpeg: () => transcoder.ffmpeg, host: phoneHost });
+  const youtube = new YouTube({ file: path.join(stateDir, 'youtube.json'), protect: platform.protect, unprotect: platform.unprotect });
+  const phone = new PhoneSync({
+    user, library, art, playlists, cacheDir: path.join(stateDir, 'phone-cache'), getFfmpeg: () => transcoder.ffmpeg, host: phoneHost, getYouTubeClient: () => youtube.client(),
+  });
 
   const profileName = () => settings.profileName || accountName() || 'zoon';
 
@@ -138,6 +142,7 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
         platform: { ffmpeg: transcoder.available, os: process.platform },
         device: sync.status(),
         phone: phone.status(),
+        youtube: youtube.status(),
       }));
 
       route('GET', /^\/api\/library$/, (req, res) => ok(res, { library: snapshot(), playlists: playlists.list() }));
@@ -289,6 +294,39 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
         ok(res, { phone: phone.status() });
       });
 
+      // YouTube Music (server/youtube.js). Songs themselves play in YouTube's embedded player in the UI.
+      route('GET', /^\/api\/youtube$/, (req, res) => ok(res, { youtube: youtube.status() }));
+
+      route('POST', /^\/api\/youtube\/client$/, (req, res, m, url, body) => {
+        youtube.configure(body || {});
+        ok(res, { youtube: youtube.status() });
+      });
+
+      route('POST', /^\/api\/youtube\/client\/remove$/, (req, res) => {
+        youtube.removeClient();
+        ok(res, { youtube: youtube.status() });
+      });
+
+      route('POST', /^\/api\/youtube\/signin$/, async (req, res) => ok(res, { signin: await youtube.startSignIn() }));
+
+      route('POST', /^\/api\/youtube\/signin\/cancel$/, (req, res) => {
+        youtube.cancelSignIn();
+        ok(res);
+      });
+
+      route('POST', /^\/api\/youtube\/signout$/, (req, res) => {
+        youtube.signOut();
+        ok(res, { youtube: youtube.status() });
+      });
+
+      route('GET', /^\/api\/youtube\/search$/, async (req, res, m, url) => ok(res, await youtube.search(url.searchParams.get('q'))));
+
+      route('GET', /^\/api\/youtube\/playlists$/, async (req, res) => ok(res, await youtube.playlists()));
+
+      route('GET', /^\/api\/youtube\/playlists\/([\w-]+)$/, async (req, res, [, id]) => ok(res, await youtube.playlist(id)));
+
+      route('GET', /^\/api\/youtube\/liked$/, async (req, res) => ok(res, await youtube.liked()));
+
       route('POST', /^\/api\/playlists$/, async (req, res, m, url, { name, trackIds }) => {
         const pl = await playlists.create(name || 'Untitled Playlist', (trackIds || []).filter((id) => library.tracks.has(id)));
         ok(res, { playlist: stripEntries(pl), playlists: playlists.list() });
@@ -332,6 +370,7 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
   phone.on('user', (e) => broadcast('user', e));
   phone.on('paired', (e) => broadcast('phonepaired', e));
   phone.on('synced', (e) => broadcast('phonesynced', e));
+  youtube.on('status', () => broadcast('youtube', youtube.status()));
 
   let bound;
   try {
@@ -354,6 +393,8 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
     async shutdown() {
       sync.stop();
       await phone.stop();
+      youtube.cancelSignIn();
+      youtube.store.flushSync();
       library.unwatch();
       user.flushSync();
       library.store.flushSync();

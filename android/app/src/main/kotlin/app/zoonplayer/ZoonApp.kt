@@ -22,6 +22,7 @@ import app.zoonplayer.sync.AutoSyncWorker
 import app.zoonplayer.sync.PcLink
 import app.zoonplayer.sync.SyncEngine
 import app.zoonplayer.sync.SyncManifest
+import app.zoonplayer.youtube.YouTube
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +51,7 @@ class AppGraph(val app: Application) {
     val levels = AudioLevels()
     val player = PlayerConnection(app)
     val pc = PcLink(app, http, File(app.filesDir, "pc.json")) { store.data.settings.phoneName }
+    val youtube = YouTube(http, File(app.filesDir, "youtube.json"), scope)
     val sync = SyncEngine(app, this)
 
     val imageLoader: ImageLoader = ImageLoader.Builder(app)

@@ -22,6 +22,7 @@ With USB debugging on, `adb install -r "dist\Zoon Player.apk"` works too.
 | search, settings | accent colours (Zune magenta plus the desktop's Smart DJ tints), backdrop choice, online toggles, and the name your PC shows for this phone |
 | background playback | a Media3 session: notification, lock screen, Bluetooth buttons, resume after reboot |
 | wireless sync | see below |
+| youtube | search YouTube Music and play your YouTube playlists and liked songs in YouTube's own player, with video (settings › online › youtube music; it can copy the Google setup from the paired PC, see "YouTube Music" in the main README). It pauses when you leave the screen: YouTube doesn't allow background or audio-only play in other apps |
 
 Plays and hearts are counted on the phone and flow back to the PC on the next sync; hearts set on the PC come to the phone.
 
@@ -40,6 +41,7 @@ How it talks: a UDP broadcast on port 18761 finds the PC, then HTTP on port 1876
 - `data/`: the MediaStore library (grouped like the desktop: album artists, "Various Artists" detection), the hearts / plays / pins / playlists store, Deezer and iTunes lookups, album art (the PC's art, embedded art, online) and Smart DJ.
 - `playback/`: `PlaybackService` (ExoPlayer in a MediaSessionService, play counting, artwork for the lock screen), `PlayerConnection` (the MediaController as Compose state) and `AudioLevels` (a pass-through audio processor that measures loudness for the glow; no microphone permission needed).
 - `sync/`: discovery, the pairing client, `SyncEngine` (report, read, copy into MediaStore, art, removals), `SyncService` (a foreground service for syncs you start) and `AutoSyncWorker`.
+- `youtube/`: Google's device sign-in and the YouTube Data API client; the player screen (YouTube's IFrame player in a WebView whose Referer is the app ID) is in `ui/screens/YouTubeScreens.kt`. `zoon.googleOauth` / `zoon.youtubeApi` Gradle properties point it at a stand-in server for tests.
 - `ui/`: Compose screens in `screens/`, the turnstile / feather motion and pivots in `components/`, the Selawik type ramp and line icons in `theme/`.
 
 ## Building

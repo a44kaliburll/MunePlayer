@@ -61,8 +61,9 @@ const run = (bin, args) => new Promise((resolve, reject) => {
 const convertedExt = (ext) => (ext === '.wma' ? '.mp3' : '.flac');
 
 export class PhoneSync extends EventEmitter {
-  constructor({ user, library, art, playlists, cacheDir, getFfmpeg, host = '0.0.0.0', port = PHONE_PORT }) {
+  constructor({ user, library, art, playlists, cacheDir, getFfmpeg, getYouTubeClient = () => null, host = '0.0.0.0', port = PHONE_PORT }) {
     super();
+    this.getYouTubeClient = getYouTubeClient;
     this.user = user;
     this.library = library;
     this.art = art;
@@ -248,6 +249,12 @@ export class PhoneSync extends EventEmitter {
         return await sendFile(req, res, art.file, art.type);
       }
       if (req.method === 'POST' && route === '/report') return await this.#report(req, res, phone);
+      // The Google OAuth client set up in settings > online, so the phone can sign in to YouTube with it too.
+      if (get && route === '/youtube') {
+        const client = this.getYouTubeClient();
+        if (!client) throw new HttpError(404, "YouTube Music isn't set up in Zoon Player on this PC");
+        return sendJson(res, 200, client);
+      }
       throw new HttpError(404, 'Not found');
     } catch (err) {
       const status = err.status || 500;

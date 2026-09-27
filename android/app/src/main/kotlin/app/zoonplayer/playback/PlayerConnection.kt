@@ -150,6 +150,7 @@ class PlayerConnection(private val context: Context) {
         }
     }
 
+    fun pause() = withController { it.pause() }
     fun next() = withController { it.seekToNextMediaItem() }
     fun previous() = withController { it.seekToPrevious() }
     fun seekTo(ms: Long) = withController { it.seekTo(ms) }

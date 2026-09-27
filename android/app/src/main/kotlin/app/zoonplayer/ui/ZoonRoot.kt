@@ -56,6 +56,10 @@ import app.zoonplayer.ui.screens.SettingsScreen
 import app.zoonplayer.ui.screens.SmartDjScreen
 import app.zoonplayer.ui.screens.SyncScreen
 import app.zoonplayer.ui.screens.WelcomeScreen
+import app.zoonplayer.ui.screens.YouTubeHomeScreen
+import app.zoonplayer.ui.screens.YouTubePlayerScreen
+import app.zoonplayer.ui.screens.YouTubePlaylistScreen
+import app.zoonplayer.ui.screens.YouTubeSetupScreen
 import app.zoonplayer.ui.theme.ZoonTheme
 import kotlin.math.abs
 
@@ -162,5 +166,9 @@ private fun ScreenContent(screen: Screen) {
         Screen.Settings -> SettingsScreen()
         Screen.Sync -> SyncScreen()
         Screen.SmartDj -> SmartDjScreen()
+        is Screen.YouTubeHome -> YouTubeHomeScreen(screen.page, screen.query)
+        is Screen.YouTubePlaylist -> YouTubePlaylistScreen(screen.id, screen.title)
+        Screen.YouTubePlayer -> YouTubePlayerScreen()
+        Screen.YouTubeSetup -> YouTubeSetupScreen()
     }
 }

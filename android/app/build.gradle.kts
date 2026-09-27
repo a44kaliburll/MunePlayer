@@ -26,6 +26,9 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
+        // Google sign-in and the YouTube Data API (youtube/YouTube.kt). Tests can point these at a stand-in server.
+        buildConfigField("String", "GOOGLE_OAUTH", "\"${providers.gradleProperty("zoon.googleOauth").orNull ?: "https://oauth2.googleapis.com"}\"")
+        buildConfigField("String", "YOUTUBE_API", "\"${providers.gradleProperty("zoon.youtubeApi").orNull ?: "https://www.googleapis.com/youtube/v3"}\"")
     }
 
     signingConfigs {

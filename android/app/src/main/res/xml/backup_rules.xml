@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <exclude domain="file" path="pc.json" />
+    <exclude domain="file" path="youtube.json" />
     <exclude domain="file" path="art" />
 </full-backup-content>

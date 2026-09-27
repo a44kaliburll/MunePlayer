@@ -39,6 +39,8 @@ import app.zoonplayer.data.Library
 import app.zoonplayer.data.toCover
 import app.zoonplayer.ui.LocalBottomInset
 import app.zoonplayer.ui.LocalZoon
+import app.zoonplayer.ui.Screen
+import app.zoonplayer.ui.components.ActionLink
 import app.zoonplayer.ui.components.AlbumArt
 import app.zoonplayer.ui.components.ZIcon
 import app.zoonplayer.ui.components.ZText
@@ -79,6 +81,7 @@ private fun search(lib: Library, text: String): Results? {
 fun SearchScreen() {
     val z = LocalZoon.current
     val lib by ZoonApp.graph.library.state.collectAsStateWithLifecycle()
+    val youtube by ZoonApp.graph.youtube.state.collectAsStateWithLifecycle()
     var text by rememberSaveable { mutableStateOf("") }
     val results = remember(text, lib.version) { search(lib, text) }
     val focus = remember { FocusRequester() }
@@ -115,6 +118,11 @@ fun SearchScreen() {
             if (r == null) {
                 item { ZText("Type to search your collection.", Type.body, color = Palette.text3, modifier = Modifier.padding(top = 12.dp)) }
                 return@LazyColumn
+            }
+            if (youtube.signedIn) {
+                item {
+                    ActionLink("search youtube music for “${r.q}”", ZIcons.search, onClick = { z.nav.go(Screen.YouTubeHome(0, r.q)) }, modifier = Modifier.padding(top = 10.dp))
+                }
             }
             if (r.artists.isEmpty() && r.albums.isEmpty() && r.songs.isEmpty()) {
                 item { ZText("Nothing matches “${r.q}”.", Type.body, color = Palette.text3, modifier = Modifier.padding(top = 12.dp)) }

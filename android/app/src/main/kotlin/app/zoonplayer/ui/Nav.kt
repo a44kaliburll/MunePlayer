@@ -16,6 +16,10 @@ sealed interface Screen {
     data object Settings : Screen
     data object Sync : Screen
     data object SmartDj : Screen
+    data class YouTubeHome(val page: Int = 0, val query: String? = null) : Screen
+    data class YouTubePlaylist(val id: String, val title: String) : Screen
+    data object YouTubePlayer : Screen
+    data object YouTubeSetup : Screen
 }
 
 /** One place in the back stack. [id] keys its saved scroll positions. */

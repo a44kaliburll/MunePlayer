@@ -58,6 +58,49 @@ const fmtLeft = (ms) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 };
 
+const ext = (href, text) => `<a href="${href}" target="_blank">${text}</a>`;
+
+/** settings > online > youtube music: set up the Google client, sign in with a code, sign out. */
+function youtubeSection(yt) {
+  let body;
+  if (!yt.configured) {
+    body = `
+      <p>Search YouTube Music and play your YouTube playlists and liked songs in the marketplace, with video, in YouTube's own player. Zoon reaches YouTube through your own free Google Cloud project, set up once:</p>
+      <ol class="yt-steps">
+        <li>At <b>console.cloud.google.com</b>, create a project and enable the <b>YouTube Data API v3</b> (APIs &amp; Services › Library).</li>
+        <li>In <b>Google Auth Platform</b>, set the app up as <b>External</b>. Under <b>Audience</b>, add yourself as a test user, or choose <b>Publish app</b> so the sign-in doesn't expire every 7 days. (Google warns that the app is unverified; it's your own project.)</li>
+        <li>Under <b>Clients</b>, create a client of the type <b>TVs and Limited Input devices</b>, then paste its ID and secret here.</li>
+      </ol>
+      <div class="addfolder yt-client">
+        <input type="text" data-yt-id placeholder="client ID (…apps.googleusercontent.com)" spellcheck="false" autocomplete="off">
+        <input type="password" data-yt-secret placeholder="client secret" spellcheck="false" autocomplete="off">
+        <button class="zbtn" data-yt="save">save</button>
+      </div>`;
+  } else if (yt.signin) {
+    body = `
+      <p>On this PC or on your phone, go to <b>${esc(yt.signin.url.replace(/^https?:\/\//, ''))}</b>, sign in to Google and enter this code:</p>
+      <div class="paircode yt-code">${esc(yt.signin.code)}</div>
+      <p data-ytexpires>The code works for ${fmtLeft(yt.signin.expires - Date.now())}.</p>
+      <div class="row-actions"><button class="zbtn primary" data-yt="page">open the page</button><button class="zbtn" data-yt="cancel">cancel</button></div>`;
+  } else if (yt.signedIn) {
+    body = `
+      <ul class="folders"><li><span>signed in${yt.channel?.title ? ` as ${esc(yt.channel.title)}` : ''}</span><a data-yt="signout">sign out</a></li></ul>
+      <p>Find it under marketplace: search YouTube Music, your playlists and your liked songs.</p>`;
+  } else {
+    body = `
+      <p>Sign in with the Google account you use for YouTube Music.</p>
+      <div class="row-actions"><button class="zbtn primary" data-yt="signin">sign in with Google</button></div>
+      <ul class="folders"><li><span title="${esc(yt.clientId)}">Google client ${esc(yt.clientId)}</span><a data-yt="remove">remove</a></li></ul>`;
+  }
+  return `
+    <section>
+      <h3>youtube music</h3>
+      ${body}
+      ${yt.error ? `<div class="status-line busy">${esc(yt.error)}</div>` : ''}
+      <p class="yt-fine">This uses YouTube API Services. By signing in you agree to the ${ext('https://www.youtube.com/t/terms', 'YouTube Terms of Service')}; see also the ${ext('https://policies.google.com/privacy', 'Google Privacy Policy')}. The sign-in stays on this PC, and you can ${ext('https://myaccount.google.com/connections', 'remove Zoon\'s access')} from your Google Account at any time.</p>
+    </section>`;
+}
+
 export function settingsView(page) {
   let section = router.state.params.section || 'collection';
   const root = el(`
@@ -131,7 +174,8 @@ export function settingsView(page) {
           ${check('online.albumArt', 'Find missing album art', 'For albums with no embedded art or cover image in the folder.', st.online?.albumArt)}
           ${check('online.artistImages', 'Show artist photos in now playing', 'Brings back the big artist backgrounds from Zune 4.', st.online?.artistImages)}
           ${check('online.related', 'Use related artists for Smart DJ', 'Mixes in artists you own that are similar to the one you picked.', st.online?.related)}
-        </section>`;
+        </section>
+        ${youtubeSection(model.youtube || {})}`;
     } else if (section === 'phone') {
       const ph = model.phone || {};
       const on = !!st.phone?.enabled;
@@ -195,6 +239,32 @@ export function settingsView(page) {
     }
   };
 
+  const youtubeAction = async (act) => {
+    try {
+      let res = null;
+      if (act === 'save') {
+        res = await api('youtube/client', { clientId: pane.querySelector('[data-yt-id]').value, clientSecret: pane.querySelector('[data-yt-secret]').value });
+      } else if (act === 'signin') {
+        const { signin } = await api('youtube/signin', {});
+        window.open(signin.url, '_blank'); // google.com/device, in the browser
+      } else if (act === 'page') {
+        window.open(model.youtube.signin?.url || 'https://www.google.com/device', '_blank');
+      } else if (act === 'cancel') {
+        await api('youtube/signin/cancel', {});
+      } else if (act === 'signout') {
+        res = await api('youtube/signout', {});
+      } else if (act === 'remove') {
+        res = await api('youtube/client/remove', {});
+      }
+      if (res?.youtube) {
+        model.youtube = res.youtube;
+        model.emit('youtube', res.youtube);
+      }
+    } catch (err) {
+      toast(err.message);
+    }
+  };
+
   root.addEventListener('click', async (e) => {
     const t = e.target;
     const sec = t.closest('[data-section]');
@@ -228,6 +298,8 @@ export function settingsView(page) {
     }
     const glow = t.closest('[data-glow]');
     if (glow) return save({ background: glow.dataset.glow });
+    const yt = t.closest('[data-yt]');
+    if (yt) return youtubeAction(yt.dataset.yt);
     const rename = t.closest('[data-rename]');
     if (rename) {
       const pc = rename.dataset.rename === 'pc';
@@ -268,9 +340,19 @@ export function settingsView(page) {
     model.on('scan', () => section === 'collection' && render()),
     model.on('library', render),
     model.on('phone', () => section === 'phone' && render()),
+    model.on('youtube', () => section === 'online' && render()),
   ];
-  // Count the pairing code down; re-render when it runs out.
+  // Count the pairing and YouTube sign-in codes down; re-render when they run out.
   const tick = setInterval(() => {
+    const y = model.youtube?.signin;
+    if (section === 'online' && y) {
+      if (y.expires <= Date.now()) {
+        model.youtube.signin = null;
+        return render();
+      }
+      const line = pane.querySelector('[data-ytexpires]');
+      if (line) line.textContent = `The code works for ${fmtLeft(y.expires - Date.now())}.`;
+    }
     const p = model.phone?.pairing;
     if (section !== 'phone' || !p) return;
     const left = p.expires - Date.now();
