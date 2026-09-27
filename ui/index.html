@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="zoon-token" content="%%TOKEN%%">
+  <meta name="zoon-shell" content="%%SHELL%%">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'">
+  <title>Zoon</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/shell.css">
+  <link rel="stylesheet" href="css/collection.css">
+  <link rel="stylesheet" href="css/quickplay.css">
+  <link rel="stylesheet" href="css/nowplaying.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body class="loading">
+  <div id="frame">
+    <canvas id="glow" aria-hidden="true"></canvas>
+    <div id="bgart" aria-hidden="true"></div>
+
+    <header id="chrome">
+      <div class="accent" aria-hidden="true"></div>
+      <button class="back nodrag" id="back" title="Back (Alt+Left)" aria-label="Back"></button>
+      <nav class="pivots nodrag" id="pivots" aria-label="Main">
+        <a data-pivot="quickplay">quickplay</a>
+        <a data-pivot="collection">collection</a>
+        <a data-pivot="marketplace">marketplace</a>
+        <a data-pivot="social">social</a>
+      </nav>
+      <nav class="subpivots nodrag" id="subpivots"></nav>
+
+      <div class="topright">
+        <div class="links nodrag">
+          <a id="lnk-settings">settings</a><span class="sep">|</span><a id="lnk-help">help</a>
+        </div>
+        <div class="profile nodrag" id="profile" title="Your Zoon card">
+          <div class="profile-text"><b id="profile-name"></b><small id="profile-sub"></small></div>
+          <div class="avatar" aria-hidden="true"></div>
+        </div>
+        <div class="winbtns nodrag" id="winbtns">
+          <button data-win="compact" title="Switch to compact mode (Ctrl+M)"></button>
+          <button data-win="minimize" title="Minimize"></button>
+          <button data-win="maximize" title="Maximize"></button>
+          <button data-win="close" title="Close"></button>
+        </div>
+      </div>
+
+      <label class="search nodrag" id="search">
+        <input id="search-input" type="text" placeholder="search" spellcheck="false" autocomplete="off">
+        <span class="search-icon" aria-hidden="true"></span>
+      </label>
+      <nav class="views nodrag" id="views"></nav>
+    </header>
+
+    <main id="page"></main>
+
+    <footer id="transport">
+      <div class="dock" id="dock">
+        <button class="dock-btn" data-dock="device" title="Drag to device"></button>
+        <button class="dock-btn" data-dock="disc" title="Drag to burn list"></button>
+        <button class="dock-btn" data-dock="playlist" title="Drag to playlist"></button>
+      </div>
+      <div class="npmini" id="npmini" hidden>
+        <button class="npmini-art" id="npmini-art" title="Now playing"><img alt=""></button>
+        <div class="npmini-body">
+          <div class="npmini-top">
+            <span class="npmini-title" id="npmini-title"></span>
+            <button class="heart" id="npmini-heart" title="Rate this song"></button>
+          </div>
+          <div class="seek" id="seek"><div class="seek-fill"></div><div class="seek-knob"></div></div>
+          <div class="npmini-times"><span id="t-elapsed">0:00</span><span id="t-remain">-0:00</span></div>
+        </div>
+      </div>
+      <div class="controls" id="controls">
+        <div class="ctl-row">
+          <button class="ctl small" id="btn-repeat" title="Repeat (Ctrl+T)"></button>
+          <button class="ctl small" id="btn-shuffle" title="Shuffle (Ctrl+H)"></button>
+          <button class="ctl ring" id="btn-prev" title="Previous (Ctrl+B)"></button>
+          <button class="ctl ring big" id="btn-play" title="Play (Ctrl+P)"></button>
+          <button class="ctl ring" id="btn-next" title="Next (Ctrl+F)"></button>
+          <button class="ctl np" id="btn-np" title="Now playing"></button>
+        </div>
+        <div class="volume" id="volume">
+          <button class="vol-icon" id="btn-mute" title="Mute (F7)"></button>
+          <div class="vol-bar" id="vol-bar"><div class="vol-fill"></div><div class="vol-knob"></div></div>
+          <span class="vol-value" id="vol-value">100</span>
+        </div>
+      </div>
+    </footer>
+
+    <section id="nowplaying" hidden></section>
+    <section id="mixview" hidden></section>
+  </div>
+
+  <div id="mini" hidden></div>
+  <div id="flyout" hidden></div>
+  <div id="menu" hidden></div>
+  <div id="modal" hidden></div>
+  <div id="toast" hidden></div>
+</body>
+</html>

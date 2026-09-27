@@ -1,0 +1,256 @@
+/* ---------- collection: three-column music views ---------- */
+.coll {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  column-gap: 26px;
+  padding: 7px var(--gutter-r) 0 var(--gutter-l);
+}
+.coll.artists, .coll.genres { grid-template-columns: 236px minmax(0, 1.12fr) minmax(0, 1fr); }
+.coll.albums { grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); }
+.coll.songs, .coll.search-songs { grid-template-columns: minmax(0, 1fr); }
+.coll.playlists { grid-template-columns: 236px minmax(0, 1fr); }
+
+.col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.colhead {
+  flex: 0 0 auto;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  line-height: 14px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.colhead b { font-weight: 700; color: var(--text-strong); }
+.colhead b.clear:hover { color: var(--pink); }
+.colhead .sort { color: var(--text-2); font-weight: 400; }
+.colhead .sort:hover { color: var(--text-strong); }
+.colhead .spacer { flex: 1; }
+.hdr-icon { width: 14px; display: grid; place-items: center; color: var(--text-strong); }
+.hdr-icon svg { width: 10px; height: 9px; }
+.colhead .link { font-weight: 700; color: var(--text-2); }
+.colhead .link:hover { color: var(--pink); }
+
+.colbody {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-top: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 38px), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 38px), transparent 100%);
+  padding-bottom: 30px;
+  outline: none;
+}
+.colbody.fade-none { -webkit-mask-image: none; mask-image: none; }
+
+.vinner { position: relative; }
+/* Virtualised rows are absolutely placed; this must beat `.song { position: relative }`. */
+.vinner > * { position: absolute !important; left: 0; right: 0; }
+
+/* plain list rows (artists, genres, playlists) */
+.row {
+  height: var(--row);
+  line-height: var(--row);
+  padding-right: 8px;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row:hover { background: var(--hover); }
+.row.sel { background: var(--select); color: var(--text-strong); }
+.row.playing { color: var(--pink); }
+.row.drop-target { background: var(--pink); color: #fff; }
+.row .count { color: var(--text-2); font-size: 10px; margin-left: 6px; }
+
+/* album tiles */
+.tile {
+  width: var(--tile);
+  height: calc(var(--tile) + 34px);
+}
+.tile .art {
+  position: relative;
+  width: var(--tile);
+  height: var(--tile);
+  background: var(--tile-empty);
+  overflow: hidden;
+}
+.tile .art::before {
+  /* default "no album art" disc */
+  content: '';
+  position: absolute;
+  inset: 26%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tile-empty) 0 17%, rgba(0,0,0,.09) 18% 20%, transparent 21% 64%, rgba(0,0,0,.08) 65% 70%, transparent 71%);
+}
+.tile .art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.tile .art img.ok { opacity: 1; }
+.tile .t1, .tile .t2 {
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tile .t1 { margin-top: 4px; color: var(--text); }
+.tile .t2 { color: var(--text-2); }
+.tile.sel .art { outline: 2px solid var(--text-strong); outline-offset: 2px; }
+.tile.sel .t1 { color: var(--text-strong); }
+.tile.playing .t1 { color: var(--pink); }
+.tile .play {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  opacity: 0;
+  transform: scale(.8);
+  transition: opacity .15s, transform .15s var(--ease);
+  filter: drop-shadow(0 0 2px rgba(0,0,0,.6));
+}
+.tile .play svg { width: 22px; height: 22px; }
+.tile:hover .play { opacity: .95; transform: none; }
+.tile .play:hover { color: var(--pink); }
+.big-tiles .tile { --tile: var(--tile-lg); }
+
+/* song rows */
+.songs-col .colbody { margin-left: -24px; padding-left: 24px; }
+.song {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--row);
+  font-size: 13px;
+  color: var(--text);
+}
+.song:hover { background: var(--hover); }
+.song.sel { background: var(--select); }
+.song.playing, .song.playing .c { color: var(--pink); }
+.song .ind {
+  position: absolute;
+  left: -20px;
+  top: 5px;
+  width: 13px;
+  height: 11px;
+  color: var(--pink);
+}
+.song .num { flex: 0 0 22px; color: var(--text-2); font-size: 12px; }
+.song.playing .num { color: var(--pink); }
+.song .title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+.song .sub { color: var(--text-2); font-size: 11px; margin-left: 6px; }
+.song .heart, .thead .c-rating .hdr-icon {
+  flex: 0 0 22px;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #7a7a7a;
+}
+.song .heart svg { width: 10px; height: 9px; }
+.song .heart.none svg { opacity: 0; }
+.song:hover .heart.none svg { opacity: .45; }
+.song .heart.none:hover svg { opacity: 1; }
+.song.playing .heart { color: var(--pink); }
+.song.playing .heart.none svg { opacity: 1; }
+.song.drop-before::before, .song.drop-after::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--pink);
+}
+.song.drop-before::before { top: -1px; }
+.song.drop-after::after { bottom: -1px; }
+
+.songhead { flex: 0 0 auto; margin: 10px 0 2px; }
+.songhead .album-name {
+  font-size: 19px;
+  line-height: 24px;
+  font-weight: 400;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.songhead .album-meta { font-size: 10px; color: var(--text-2); text-transform: uppercase; font-weight: 600; }
+
+/* sortable table (songs view, playlists) */
+.table .thead, .table .song { display: flex; align-items: center; }
+.thead {
+  flex: 0 0 auto;
+  height: 14px;
+  font-size: 10.5px;
+  line-height: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.thead .c { color: var(--text-2); }
+.thead .c:hover { color: var(--text); }
+.thead .c.sorted { color: var(--text-strong); }
+.thead .c .arrow { display: inline-block; margin-left: 3px; font-size: 8px; vertical-align: 1px; }
+.c { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 14px; }
+.c-num { flex: 0 0 34px; color: var(--text-2); }
+.c-title { flex: 3 1 0; }
+.c-len { flex: 0 0 74px; text-align: right; padding-right: 22px; }
+.c-artist { flex: 2 1 0; }
+.c-album { flex: 2 1 0; }
+.c-genre { flex: 1 1 0; }
+.c-rating { flex: 0 0 48px; padding-right: 0; display: flex; justify-content: center; }
+.c-plays { flex: 0 0 52px; text-align: right; padding-right: 10px; }
+.c-added { flex: 0 0 86px; text-align: right; }
+.table .song .c-len, .table .song .c-plays, .table .song .c-added, .table .song .c-num { color: var(--text-2); font-size: 12px; }
+.table .song.playing .c-len, .table .song.playing .c-plays { color: var(--pink); }
+
+.pl-title {
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: 300;
+  color: var(--text-strong);
+  text-transform: lowercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 2px 0 0;
+}
+.pl-meta { font-size: 10px; font-weight: 600; color: var(--text-2); text-transform: uppercase; margin-bottom: 12px; }
+.pl-actions { display: flex; gap: 14px; margin: 2px 0 14px; }
+.pl-actions a { font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--text-2); }
+.pl-actions a:hover { color: var(--pink); }
+
+/* sort dropdown */
+.sortmenu { min-width: 140px; }
+
+/* empty collection */
+.empty {
+  position: absolute;
+  inset: 0;
+  padding: 30px var(--gutter-r) 0 var(--gutter-l);
+  animation: fade-in .4s ease both;
+}
+.empty h2 { margin: 0; font-size: 42px; line-height: 1.1; font-weight: 300; color: var(--text-3); }
+.empty p { max-width: 520px; margin: 14px 0 20px; color: var(--text-2); font-size: 13px; line-height: 1.55; }
+.empty .scanning { color: var(--pink); }
+
+.hint { color: var(--text-2); font-size: 12px; padding: 8px 0; white-space: normal; line-height: 1.5; }

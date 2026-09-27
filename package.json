@@ -1,0 +1,74 @@
+{
+  "name": "zoon-player",
+  "productName": "Zoon Player",
+  "version": "1.0.0",
+  "description": "A Zune-inspired music player for your own music library, with Zune HD sync and a companion Android app.",
+  "author": "a44kaliburll",
+  "homepage": "https://github.com/a44kaliburll/ZoonPlayer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a44kaliburll/ZoonPlayer.git"
+  },
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "serve": "electron . --serve-only --port=18751",
+    "dist": "electron-builder --win",
+    "make-icon": "electron desktop/make-icon.js"
+  },
+  "dependencies": {
+    "music-metadata": "^11.16.1"
+  },
+  "devDependencies": {
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.a44kaliburll.zoon",
+    "productName": "Zoon Player",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.cjs",
+      "desktop/**/*",
+      "server/**/*",
+      "ui/**/*",
+      "build/icon.png",
+      "build/icon.ico",
+      "!server/dev.js"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "executableName": "ZoonPlayer"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Zoon Player",
+      "uninstallDisplayName": "Zoon Player",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    },
+    "extraResources": [
+      {
+        "from": "native/zunewpd.exe",
+        "to": "native/zunewpd.exe"
+      }
+    ]
+  },
+  "private": true
+}

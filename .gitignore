@@ -1,0 +1,32 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.log
+
+# Native Zune HD helper (build it with native\build.cmd)
+native/*.exe
+native/*.obj
+
+# Windows shortcuts made for one PC
+*.lnk
+
+# Android: machine settings, build output, signing keys
+android/local.properties
+android/build/
+android/app/build/
+android/.gradle/
+android/.kotlin/
+android/dist/
+android/.idea/
+*.iml
+*.jks
+*.keystore
+zoon-release.properties
+
+# MTPZ key material never goes in the repository (see "Syncing a Zune HD" in README.md)
+.mtpz-data
+mtpz-keys.json
+
+# Editors
+.idea/
+.vscode/

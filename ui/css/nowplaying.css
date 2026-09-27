@@ -1,0 +1,312 @@
+/* ---------- now playing ---------- */
+#nowplaying {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+  animation: fade-in .45s ease both;
+}
+body.np-open #transport { z-index: 6; }
+body.np-open #chrome { visibility: hidden; }
+
+.np-mosaic {
+  position: absolute;
+  inset: -2px;
+}
+.np-cell {
+  position: absolute;
+  perspective: 700px;
+}
+.np-flip {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform .9s var(--ease);
+}
+.np-flip.flipped { transform: rotateY(180deg); }
+.np-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  background: #1c1c1c center / cover no-repeat;
+  filter: grayscale(1) contrast(1.15) brightness(.95);
+}
+.np-face.back { transform: rotateY(180deg); }
+
+.np-tint {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  background: #c3d24f;
+  transition: background-color 4s ease;
+  pointer-events: none;
+}
+.np-shade {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.25) 34%, rgba(0,0,0,.08) 60%, rgba(0,0,0,.35) 100%);
+}
+
+/* artist photo mode */
+.np-photo {
+  position: absolute;
+  inset: 0;
+  background: #000 center 20% / cover no-repeat;
+  opacity: 0;
+  transition: opacity 2.2s ease;
+  filter: grayscale(.15) contrast(1.05);
+}
+.np-photo.on { opacity: 1; animation: kenburns 38s ease-in-out infinite alternate; }
+@keyframes kenburns {
+  from { transform: scale(1.04) translate(0, 0); }
+  to { transform: scale(1.16) translate(-2.5%, -1.5%); }
+}
+.np-bigtext {
+  position: absolute;
+  left: 0;
+  top: 7%;
+  white-space: nowrap;
+  font-size: 22vh;
+  line-height: 1;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: -.02em;
+  color: rgba(255, 255, 255, .1);
+  pointer-events: none;
+  animation: drift 60s linear infinite;
+}
+@keyframes drift { from { transform: translateX(8%); } to { transform: translateX(-60%); } }
+.np-stat {
+  position: absolute;
+  left: 7.5%;
+  top: 76px;
+  text-align: left;
+  font-weight: 300;
+  color: rgba(255,255,255,.8);
+  pointer-events: none;
+  animation: rise-in 1.2s var(--ease) both;
+}
+.np-stat b { display: block; font-size: 64px; line-height: 1; font-weight: 300; }
+.np-stat span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: rgba(255,255,255,.6); }
+
+.np-back {
+  position: absolute;
+  left: 22px;
+  top: 16px;
+  width: 26px;
+  height: 26px;
+  color: #fff;
+  z-index: 3;
+  opacity: .9;
+  transition: transform .2s var(--ease), opacity .2s;
+  -webkit-app-region: no-drag;
+}
+.np-back:hover { opacity: 1; transform: scale(1.08); }
+.np-drag { position: absolute; left: 60px; right: 120px; top: 0; height: 44px; -webkit-app-region: drag; z-index: 2; }
+.np-top {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  z-index: 3;
+  -webkit-app-region: no-drag;
+}
+.np-links { display: flex; gap: 12px; margin-top: 16px; }
+.np-links a {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+}
+.np-links a:hover, .np-links a.on { color: #fff; }
+.np-top .winbtns button { color: rgba(255,255,255,.65); }
+.np-top .winbtns button:hover { color: #fff; }
+
+.np-info {
+  position: absolute;
+  left: 7.5%;
+  bottom: 118px;
+  right: 340px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  z-index: 2;
+}
+.np-art {
+  flex: 0 0 auto;
+  width: clamp(110px, 19vh, 170px);
+  height: clamp(110px, 19vh, 170px);
+  border: 3px solid #fff;
+  background: #333 center / cover no-repeat;
+  box-shadow: 0 4px 24px rgba(0,0,0,.45);
+  animation: rise-in .6s var(--ease) both;
+}
+.np-text { min-width: 0; padding-bottom: 2px; animation: rise-in .6s .08s var(--ease) both; }
+.np-artist {
+  font-size: clamp(20px, 3.3vh, 30px);
+  line-height: 1.12;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 12px rgba(0,0,0,.35);
+}
+.np-album {
+  font-size: clamp(15px, 2.4vh, 22px);
+  line-height: 1.2;
+  font-weight: 300;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-title {
+  margin-top: 10px;
+  font-size: clamp(15px, 2.4vh, 22px);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-actions { display: flex; gap: 6px; margin-top: 8px; }
+.np-actions button { width: 22px; height: 22px; color: #fff; opacity: .85; }
+.np-actions button:hover { opacity: 1; color: var(--pink); }
+.np-actions button.love { color: var(--pink); opacity: 1; }
+.np-actions svg { width: 22px; height: 22px; }
+
+.np-queue {
+  position: absolute;
+  right: 22px;
+  top: 64px;
+  bottom: 94px;
+  width: 290px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, .72);
+  z-index: 2;
+  animation: fade-in .5s .15s ease backwards; /* not "both": a held animation would block the idle fade */
+}
+.np-queue header {
+  padding: 10px 14px 6px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #9a9a9a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-qlist { flex: 1; min-height: 0; overflow-y: auto; padding: 0 0 8px; }
+.np-qlist::-webkit-scrollbar-track { background: none; }
+.np-qitem { position: relative; padding: 5px 14px 5px 28px; }
+.np-qitem:hover { background: rgba(255,255,255,.08); }
+.np-qitem b { display: block; font-size: 14px; line-height: 18px; font-weight: 400; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-qitem span { display: block; font-size: 9px; line-height: 12px; font-weight: 700; text-transform: uppercase; color: #8d8d8d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.np-qitem.cur { background: rgba(255,255,255,.12); }
+.np-qitem.cur b, .np-qitem.cur span { color: var(--pink); }
+.np-qitem .ind { position: absolute; left: 9px; top: 9px; width: 12px; height: 11px; color: var(--pink); }
+.np-qitem.past b { color: #9d9d9d; }
+.np-queue footer { padding: 8px 14px 12px; display: flex; gap: 8px; }
+.np-queue footer button {
+  height: 19px;
+  padding: 0 8px;
+  background: #fff;
+  color: #111;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.np-queue footer button:hover { background: var(--pink); color: #fff; }
+body.np-noqueue .np-queue { display: none; }
+body.np-noqueue .np-info { right: 40px; }
+
+.np-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #888;
+  font-size: 30px;
+  font-weight: 300;
+}
+
+/* ---------- mixview ---------- */
+#mixview {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: #0d0b0c;
+  color: #fff;
+  overflow: hidden;
+  animation: fade-in .35s ease both;
+}
+body.mix-open #chrome { visibility: hidden; }
+body.mix-open #transport { z-index: 6; }
+.mix-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 55% at 50% 48%, #2d2428 0%, #171214 60%, #0a0809 100%);
+}
+.mix-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mix-lines line { stroke: rgba(255, 255, 255, .16); stroke-width: 1; animation: fade-in .8s .2s ease both; }
+.mix-lines line.owned { stroke: rgba(240, 0, 151, .5); }
+.mix-lines line.album { stroke: rgba(255, 255, 255, .28); }
+.mix-items { position: absolute; inset: 0; }
+.mix-item {
+  position: absolute;
+  animation: mix-in .55s var(--ease) both;
+  transition: left .5s var(--ease), top .5s var(--ease);
+}
+@keyframes mix-in { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+.mix-art {
+  width: var(--size);
+  height: var(--size);
+  background: #2a2628 center / cover no-repeat;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .5);
+  transition: transform .2s var(--ease), box-shadow .2s;
+}
+.mix-item:hover .mix-art { transform: scale(1.07); box-shadow: 0 8px 30px rgba(0, 0, 0, .7); }
+.mix-item.center .mix-art { border: 3px solid #fff; }
+.mix-item.related .mix-art { border-radius: 50%; filter: grayscale(.55) brightness(.85); }
+.mix-item.related.owned .mix-art { filter: none; box-shadow: 0 0 0 2px var(--pink), 0 6px 24px rgba(0, 0, 0, .5); }
+.mix-item span {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  line-height: 13px;
+  text-align: center;
+  color: #d8d8d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mix-item.center span { font-size: 15px; line-height: 19px; font-weight: 700; text-transform: uppercase; color: #fff; }
+.mix-item.related:not(.owned) span { color: #8d8d8d; }
+.mix-back { left: 22px; top: 16px; }
+.mix-title {
+  position: absolute;
+  left: 62px;
+  top: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  -webkit-app-region: drag;
+}
+.mix-title span { font-size: 30px; font-weight: 300; color: #fff; }
+.mix-title b { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pink); }
+.mix-hint { position: absolute; left: 64px; top: 50px; font-size: 9.5px; font-weight: 700; text-transform: uppercase; color: #6d6769; }
+.mix-top { position: absolute; top: 7px; right: 8px; z-index: 3; }
+.mix-top .winbtns button { color: rgba(255,255,255,.65); }
+.mix-top .winbtns button:hover { color: #fff; }
+
+/* After a few seconds without the mouse, Now Playing hides its chrome (like Zune). */
+.np-queue, .np-top, .np-back, .np-actions { transition: opacity .35s ease; }
+body.np-idle .np-queue, body.np-idle .np-top, body.np-idle .np-back, body.np-idle .np-actions { opacity: 0; transition-duration: 1.2s; }
+body.np-idle #nowplaying { cursor: none; }
