@@ -14,7 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { HttpError, readBody, sendFile, sendJson, sendMedia } from './http.js';
-import { MIME, NATIVE_EXT } from './util.js';
+import { MIME, NATIVE_EXT, cleanName } from './util.js';
 
 export const PHONE_PORT = 18760;
 export const DISCOVERY_PORT = 18761;
@@ -90,8 +90,9 @@ export class PhoneSync extends EventEmitter {
     return !!this.user.data.settings.phone?.enabled;
   }
 
+  /** The name phones show for this PC: the one chosen in settings > phone, or the computer name. */
   pcName() {
-    return os.hostname() || 'My PC';
+    return this.user.data.settings.pcName || os.hostname() || 'My PC';
   }
 
   status() {
@@ -287,7 +288,7 @@ export class PhoneSync extends EventEmitter {
       throw new HttpError(403, "That code doesn't match the one on your PC.");
     }
     const phoneId = String(body.phoneId || crypto.randomUUID()).replace(/[^\w-]/g, '').slice(0, 64) || crypto.randomUUID();
-    const name = String(body.phoneName || 'Android phone').replace(/[\x00-\x1f]/g, '').slice(0, 60);
+    const name = cleanName(body.phoneName, 60) || 'Android phone';
     const token = crypto.randomBytes(24).toString('base64url');
     this.user.data.phones[phoneId] = { name, tokenHash: sha256(token), paired: Date.now(), lastSeen: Date.now() };
     this.user.save(0);
@@ -411,6 +412,9 @@ export class PhoneSync extends EventEmitter {
       phone.lastSync = Date.now();
       phone.songs = Math.max(0, Math.floor(Number(body.synced.songs) || 0));
     }
+    // The phone's name can change in its settings; it comes along with each report.
+    const phoneName = cleanName(body.phoneName, 60);
+    if (phoneName) phone.name = phoneName;
     this.user.save();
     if (plays || ratings.length) this.emit('user', { ratings });
     if (body.synced) this.emit('synced', { name: phone.name, songs: phone.songs, added: Number(body.synced.added) || 0 });

@@ -37,6 +37,7 @@ On first run it watches your Music folder, plus the folders the original Zune so
 | compact (mini player) mode, taskbar thumbnail buttons, media keys | yes |
 | monitored folders that update on their own | yes |
 | social | a local "zoon card" with your plays, favorites and badges |
+| your name, this PC's name, your Zune's name | yes: settings > account, settings > phone, and "rename" on the device page (your name starts as your Windows account name) |
 | Zune HD sync | yes: "device" pivot, sync all music or drag / right-click "sync with …", remove from device, the device's play counts flow back |
 | wireless sync with the Android app | yes (settings > phone) |
 | marketplace, videos, pictures, podcasts, channels | placeholders |

@@ -19,7 +19,7 @@ const capturePath = arg('capture'); // --capture=out.png: screenshot the window,
 // --state=<dir> points a test run at a throwaway state folder (e.g. to check first-run behaviour).
 const dir = arg('state') ? (fs.mkdirSync(arg('state'), { recursive: true }), arg('state')) : stateDir(serveOnly || !!capturePath);
 app.setPath('userData', path.join(dir, 'electron'));
-app.setAppUserModelId('com.a44kaliburll.zoon');
+app.setAppUserModelId('app.zoonplayer');
 
 const FULL_MIN = { width: 900, height: 600 };
 const COMPACT = { width: 390, height: 96 };

@@ -1,6 +1,6 @@
 // device: the connected Zune — summary (capacity, sync) and the music on it.
 import { api } from '../api.js';
-import { confirm, showMenu, toast } from '../components.js';
+import { confirm, prompt, showMenu, toast } from '../components.js';
 import { model } from '../model.js';
 import { router } from '../router.js';
 import { artUrl, collator, el, esc, plural, sortName } from '../util.js';
@@ -113,6 +113,7 @@ export function deviceView(page, state) {
           <div class="dev-actions">
             <button class="zbtn primary" data-act="sync" ${busy ? 'disabled' : ''}>${busy ? 'syncing…' : 'sync all music'}</button>
             <button class="zbtn" data-act="refresh" ${busy ? 'disabled' : ''}>refresh</button>
+            <button class="zbtn" data-act="rename" ${busy ? 'disabled' : ''}>rename</button>
           </div>
           <div class="dev-progress ${busy ? 'on' : ''}"><i style="width:${barPct}%"></i></div>
           <div class="dev-status">${esc(syncLine(p) || (d.lastError ? `Problem talking to your Zune: ${d.lastError}` : `Last synced ${ago(d.lastSync)}.`))}</div>
@@ -192,6 +193,16 @@ export function deviceView(page, state) {
       }
     } else if (act === 'refresh') {
       api('device/refresh').then(loadContent).catch((err) => toast(err.message));
+    } else if (act === 'rename') {
+      const d = model.device || {};
+      const name = await prompt('name your zune', { value: d.info?.name || d.device?.name || '', okLabel: 'save' });
+      if (!name) return;
+      try {
+        const { device } = await api('device/rename', { name });
+        toast(`Your Zune is now called ${device.info?.name || name}.`);
+      } catch (err) {
+        toast(err.message);
+      }
     }
   });
   root.addEventListener('change', (e) => {

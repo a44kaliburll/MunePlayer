@@ -15,13 +15,13 @@ val signing: Properties? = (providers.gradleProperty("zoon.signing").orNull
     ?.let { f -> Properties().apply { f.inputStream().use { load(it) } } }
 
 android {
-    namespace = "com.a44kaliburll.zoon"
+    namespace = "app.zoonplayer"
     compileSdk {
         version = release(37) { minorApiLevel = 0 }
     }
 
     defaultConfig {
-        applicationId = "com.a44kaliburll.zoon"
+        applicationId = "app.zoonplayer"
         minSdk = 29
         targetSdk = 37
         versionCode = 1

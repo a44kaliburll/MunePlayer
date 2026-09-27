@@ -19,7 +19,7 @@ With USB debugging on, `adb install -r "dist\Zoon Player.apk"` works too.
 | now playing | a drifting (Ken Burns) artist photo, enormous artist / album / title words scrolling past, album art that flips when the album changes and swipes to skip, a glow that pulses with the music, controls that fade after 7 s (tap to bring them back) while the art tucks into the corner, up next, hearts, shuffle / repeat, Smart DJ |
 | smart dj | pick an artist; it mixes in Deezer's related artists you own and same-genre songs, weighted by hearts and plays (same logic as the desktop) |
 | playlists | make your own on the phone; playlists from the PC sync over too |
-| search, settings | accent colours (Zune magenta plus the desktop's Smart DJ tints), backdrop choice, online toggles |
+| search, settings | accent colours (Zune magenta plus the desktop's Smart DJ tints), backdrop choice, online toggles, and the name your PC shows for this phone |
 | background playback | a Media3 session: notification, lock screen, Bluetooth buttons, resume after reboot |
 | wireless sync | see below |
 

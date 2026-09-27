@@ -178,8 +178,9 @@ class Model extends Emitter {
   }
 
   async saveSettings(patch) {
-    const { settings } = await api('settings', patch);
+    const { settings, profile } = await api('settings', patch);
     this.user.settings = settings;
+    if (profile) this.profile = profile;
     this.emit('settings');
     return settings;
   }

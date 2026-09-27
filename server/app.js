@@ -13,7 +13,7 @@ import { Playlists } from './playlists.js';
 import { ZuneSync } from './sync.js';
 import { JsonStore } from './store.js';
 import { Transcoder } from './transcode.js';
-import { myMusicFolder } from './util.js';
+import { cleanName, myMusicFolder } from './util.js';
 import { importZuneFolders } from './zune-import.js';
 
 const MAX_HISTORY = 60;
@@ -28,7 +28,8 @@ const USER_DEFAULTS = {
     theme: 'light',
     startPivot: 'quickplay',
     resume: true,
-    profileName: null,
+    profileName: null, // null = the Windows account name
+    pcName: null, // what phones call this PC; null = the computer name
     online: { albumArt: true, artistImages: true, related: true },
     sync: { auto: false },
     phone: { enabled: false },
@@ -43,6 +44,14 @@ const USER_DEFAULTS = {
   devices: {},
   phones: {},
 };
+
+function accountName() {
+  try {
+    return cleanName(os.userInfo().username);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Builds the whole back end (library, art, playlists, API) and starts the
@@ -97,7 +106,7 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
   transcoder.ready.then(() => { sync.ffmpeg = transcoder.ffmpeg; });
   const phone = new PhoneSync({ user, library, art, playlists, cacheDir: path.join(stateDir, 'phone-cache'), getFfmpeg: () => transcoder.ffmpeg, host: phoneHost });
 
-  const profileName = () => settings.profileName || (os.userInfo().username || 'zoon').replace(/[^\w .-]/g, '');
+  const profileName = () => settings.profileName || accountName() || 'zoon';
 
   const publicUser = () => ({
     settings,
@@ -177,18 +186,21 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
       route('POST', /^\/api\/settings$/, async (req, res, m, url, patch) => {
         const before = JSON.stringify(settings.folders);
         const phoneBefore = !!settings.phone?.enabled;
+        const pcNameBefore = settings.pcName;
         for (const [k, v] of Object.entries(patch || {})) {
           if (!(k in USER_DEFAULTS.settings)) continue;
-          settings[k] = k === 'online' || k === 'phone' ? { ...settings[k], ...v } : v;
+          if (k === 'profileName' || k === 'pcName') settings[k] = cleanName(v);
+          else settings[k] = k === 'online' || k === 'phone' ? { ...settings[k], ...v } : v;
         }
         if (Array.isArray(settings.folders)) settings.folders = [...new Set(settings.folders.filter(Boolean).map((f) => path.resolve(f)))];
         user.save(0);
         if (phoneSync && !!settings.phone?.enabled !== phoneBefore) await phone.apply();
+        else if (settings.pcName !== pcNameBefore) phone.emit('status');
         if (JSON.stringify(settings.folders) !== before) {
           library.watch();
           library.scan().then(() => playlists.refresh());
         }
-        ok(res, { settings });
+        ok(res, { settings, profile: { name: profileName() } });
       });
 
       route('POST', /^\/api\/session$/, (req, res, m, url, session) => {
@@ -244,6 +256,13 @@ export async function startZoon({ stateDir, uiDir, port = 0, shell = 'browser', 
         if (sync.busy) throw new HttpError(409, 'A sync is already running');
         sync.sync(body).catch((err) => console.warn('[sync]', err.message));
         ok(res, { started: true });
+      });
+
+      route('POST', /^\/api\/device\/rename$/, async (req, res, m, url, { name }) => {
+        const clean = cleanName(name, 30);
+        if (!clean) throw new HttpError(400, 'Type a name for your Zune');
+        if (!sync.status().connected) throw new HttpError(409, 'No Zune is connected');
+        ok(res, { device: await sync.rename(clean) });
       });
 
       route('POST', /^\/api\/device\/remove$/, async (req, res, m, url, { objectIds }) => {

@@ -9,6 +9,14 @@ import { norm } from './util.js';
 
 const NATIVE = { '.mp3': 0x3009, '.wma': 0xb901 };
 const POLL_MS = 4000;
+const MTP = { GetDevicePropValue: 0x1015, SetDevicePropValue: 0x1016, DeviceFriendlyName: 0xd402, OK: 0x2001 };
+
+/** An MTP string: a count of UTF-16 units (terminator included), the text in UTF-16LE, then a null. */
+const mtpString = (s) => {
+  const text = String(s).slice(0, 254);
+  return Buffer.concat([Buffer.from([text.length + 1]), Buffer.from(`${text}\0`, 'utf16le')]);
+};
+const readMtpString = (buf) => (buf[0] ? buf.subarray(1, 1 + (buf[0] - 1) * 2).toString('utf16le') : '');
 
 const run = (bin, args) => new Promise((resolve, reject) => {
   execFile(bin, args, { windowsHide: true, maxBuffer: 1 << 20 }, (err, _out, stderr) => (err ? reject(new Error(stderr || err.message)) : resolve()));
@@ -342,6 +350,34 @@ export class ZuneSync extends EventEmitter {
       this.busy = false;
       this.emit('status');
     }
+  }
+
+  /** Names the Zune (its MTP DeviceFriendlyName), as the Zune software's "name your Zune" did. */
+  async rename(name) {
+    if (this.busy) throw new Error('The Zune is busy');
+    this.busy = true;
+    this.emit('status');
+    try {
+      await this.#withDevice(async () => {
+        const set = await this.bridge.request('mtp', { op: MTP.SetDevicePropValue, params: [MTP.DeviceFriendlyName], data: mtpString(name).toString('base64') });
+        if (set.responseCode !== MTP.OK) throw new Error(`The Zune didn't take the new name (MTP 0x${set.responseCode.toString(16)})`);
+        // Read it back from the device itself; Windows may keep showing the old name until the Zune reconnects.
+        const got = await this.bridge.request('mtp', { op: MTP.GetDevicePropValue, params: [MTP.DeviceFriendlyName], read: true });
+        const now = got.responseCode === MTP.OK ? readMtpString(Buffer.from(got.data || '', 'base64')) : name;
+        this.info = { ...((await this.bridge.request('info')).info || this.info), name: now || name };
+      });
+      if (this.device) this.device.name = this.info.name;
+      const rec = this.user.data.devices?.[this.info?.serial];
+      if (rec) {
+        rec.name = this.info.name;
+        this.user.save();
+      }
+      this.lastError = null;
+    } finally {
+      this.busy = false;
+      this.emit('status');
+    }
+    return this.status();
   }
 
   async removeFromDevice(objectIds) {

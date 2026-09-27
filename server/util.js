@@ -91,3 +91,9 @@ export const exists = (p) => {
 };
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** A name someone typed (their own, this PC's, a phone's or a Zune's): one line, no control characters; empty means null. */
+export function cleanName(value, max = 40) {
+  const s = String(value ?? '').replace(/[\x00-\x1f\x7f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max).trim();
+  return s || null;
+}

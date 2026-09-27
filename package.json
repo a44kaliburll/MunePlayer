@@ -3,12 +3,7 @@
   "productName": "Zoon Player",
   "version": "1.0.0",
   "description": "A Zune-inspired music player for your own music library, with Zune HD sync and a companion Android app.",
-  "author": "a44kaliburll",
-  "homepage": "https://github.com/a44kaliburll/ZoonPlayer",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/a44kaliburll/ZoonPlayer.git"
-  },
+  "author": "Zoon Player",
   "type": "module",
   "main": "main.js",
   "scripts": {
@@ -25,7 +20,7 @@
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "com.a44kaliburll.zoon",
+    "appId": "app.zoonplayer",
     "productName": "Zoon Player",
     "directories": {
       "output": "dist"

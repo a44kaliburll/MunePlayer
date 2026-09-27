@@ -1,6 +1,6 @@
 // settings: collection folders, playback, display, online services, keyboard, about.
 import { api, native } from '../api.js';
-import { toast } from '../components.js';
+import { prompt, toast } from '../components.js';
 import { model } from '../model.js';
 import { router } from '../router.js';
 import { el, esc, plural } from '../util.js';
@@ -14,7 +14,7 @@ export const GLOWS = {
   none: { label: 'none', light: null, dark: null },
 };
 
-const SECTIONS = ['collection', 'playback', 'display', 'online', 'phone', 'keyboard', 'about'];
+const SECTIONS = ['collection', 'playback', 'display', 'online', 'phone', 'account', 'keyboard', 'about'];
 
 const SHORTCUTS = [
   ['Play / pause', 'Space or Ctrl+P'],
@@ -139,11 +139,16 @@ export function settingsView(page) {
       pane.innerHTML = `
         <section>
           <h3>wireless sync</h3>
-          <p>Sync your music to the Zoon Player app on your Android phone over Wi‑Fi, the way a Zune HD synced. Your phone and this PC need to be on the same network, with Zune Revival open here.</p>
+          <p>Sync your music to the Zoon Player app on your Android phone over Wi‑Fi, the way a Zune HD synced. Your phone and this PC need to be on the same network, with Zoon Player open here.</p>
           ${check('phone.enabled', 'Let my phone sync with this PC over Wi‑Fi', 'The first time, Windows asks whether Zoon Player may use your network. Choose Allow for private networks.', on)}
           ${on ? `<div class="status-line ${ph.listening ? '' : 'busy'}">${esc(ph.listening ? `Ready for your phone at ${(ph.addresses || []).join(', ') || 'this PC'} (port ${ph.port}).` : ph.error || 'Starting…')}</div>` : ''}
           ${ph.activity ? `<div class="status-line busy">${esc(`${ph.activity.phone} is syncing: ${ph.activity.title}`)}</div>` : ''}
         </section>
+        ${on ? `<section>
+          <h3>this pc's name</h3>
+          <p>Your phone lists this PC by this name.</p>
+          <ul class="folders"><li><span>${esc(ph.name || '')}</span><a data-rename="pc">change</a></li></ul>
+        </section>` : ''}
         ${on ? `<section>
           <h3>pair a phone</h3>
           ${pairing ? `
@@ -157,6 +162,13 @@ export function settingsView(page) {
         <section>
           <h3>paired phones</h3>
           <ul class="folders">${(ph.phones || []).map((p) => `<li><span>${esc(p.name)} <small class="muted">— ${esc(phoneLine(p))}</small></span><a data-forget="${esc(p.id)}">forget</a></li>`).join('') || '<li><span class="muted">No phones yet.</span></li>'}</ul>
+        </section>`;
+    } else if (section === 'account') {
+      pane.innerHTML = `
+        <section>
+          <h3>your name</h3>
+          <p>Shown at the top of Zoon and on your zoon card. It stays on this PC.</p>
+          <ul class="folders"><li><span>${esc(model.profile.name || '')}</span><a data-rename="profile">change</a></li></ul>
         </section>`;
     } else if (section === 'keyboard') {
       pane.innerHTML = `
@@ -216,6 +228,13 @@ export function settingsView(page) {
     }
     const glow = t.closest('[data-glow]');
     if (glow) return save({ background: glow.dataset.glow });
+    const rename = t.closest('[data-rename]');
+    if (rename) {
+      const pc = rename.dataset.rename === 'pc';
+      const name = await prompt(pc ? "this pc's name" : 'your name', { value: pc ? model.phone?.name || '' : model.profile.name || '', okLabel: 'save' });
+      if (name) await save(pc ? { pcName: name } : { profileName: name });
+      return;
+    }
     try {
       if (t.closest('[data-pair]')) {
         await api('phone/pair', {});
